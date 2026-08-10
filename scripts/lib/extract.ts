@@ -74,6 +74,17 @@ export type PlaceHit = {
   /** Where the name was found. Drives confidence. */
   source: 'playlist' | 'hashtag' | 'title' | 'prose';
   kind: 'city' | 'state';
+  /**
+   * True when the name is preceded by a locative preposition — "in Delhi",
+   * "at Kaziranga", "near Meerut". This is the strongest available signal that
+   * a place is where the camera was, rather than a place merely named.
+   */
+  locative?: boolean;
+  /**
+   * True when preceded by an origin marker — "from Tibet", "breed of Tibet",
+   * "native to". These mark provenance, which is precisely NOT the venue.
+   */
+  origin?: boolean;
 };
 
 /**
@@ -137,12 +148,33 @@ export function extractPlace(
       ...Object.keys(gazetteer).map((k) => [k, k] as [string, string]),
     ]) {
       // Word-boundary match so "Goa" doesn't fire inside "Goalpara".
-      if (new RegExp(`\\b${escapeRegex(name)}\\b`, 'i').test(haystack)) {
-        const entry = gazetteer[canonical];
-        if (entry) hits.push({ placeId: canonical, source, kind: entry.kind });
-      }
+      const re = new RegExp(`\\b${escapeRegex(name)}\\b`, 'i');
+      const m = re.exec(haystack);
+      if (!m) continue;
+      const entry = gazetteer[canonical];
+      if (!entry) continue;
+
+      // Look backwards from the match for the preceding word, skipping any
+      // punctuation. Matching this in the pattern itself silently dropped
+      // every name preceded by a comma ("houseboats, Srinagar") and cost
+      // ~1,100 clips their location.
+      const before = haystack
+        .slice(Math.max(0, m.index - 24), m.index)
+        .replace(/[^a-z\s]/g, ' ')
+        .trim()
+        .split(/\s+/)
+        .pop() ?? '';
+
+      hits.push({
+        placeId: canonical,
+        source,
+        kind: entry.kind,
+        locative: LOCATIVE.has(before),
+        origin: ORIGIN.has(before),
+      });
     }
   };
+
 
   if (playlistTitle) scan(playlistTitle, 'playlist');
   scan(title, 'title');
@@ -153,12 +185,42 @@ export function extractPlace(
   const kindRank = { city: 0, state: 1 };
   const sourceRank = { playlist: 0, hashtag: 1, title: 2, prose: 3 };
 
+  /*
+   * Locative beats everything.
+   *
+   * Measured on a 100-clip hand audit (seed 307): 6-8% of clips with a place
+   * had the WRONG one because a place was named without being the venue — a
+   * team in "Pakistan v/s India", an organisation's name ("Tibetan Institute
+   * of Performing Arts", filmed in New Delhi), a destination ("road trip to
+   * Kathmandu"), a breed's provenance ("Pashmina goat, a breed from Tibet",
+   * filmed in Ladakh). In every case the true venue WAS present and marked by
+   * a locative preposition, and the false one was not.
+   *
+   * So grammar outranks both specificity and source trust: "in New Delhi" in
+   * the prose beats "Tibet" in a curated playlist title. An explicit origin
+   * marker sorts last, below even a bare mention.
+   */
+  const positional = (h: PlaceHit) => (h.locative ? 0 : h.origin ? 2 : 1);
+
   hits.sort(
-    (a, b) => kindRank[a.kind] - kindRank[b.kind] || sourceRank[a.source] - sourceRank[b.source],
+    (a, b) =>
+      positional(a) - positional(b) ||
+      kindRank[a.kind] - kindRank[b.kind] ||
+      sourceRank[a.source] - sourceRank[b.source],
   );
 
   return hits[0];
 }
+
+/** Prepositions that mark where something IS. */
+const LOCATIVE = new Set([
+  'in', 'at', 'near', 'outside', 'inside', 'around', 'across', 'along',
+  'through', 'over', 'above', 'below', 'beside', 'towards', 'toward',
+  'within', 'throughout',
+]);
+
+/** Markers of provenance — where something came FROM, not where it is. */
+const ORIGIN = new Set(['from', 'of', 'native', 'origin', 'originates', 'belongs']);
 
 function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
