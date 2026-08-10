@@ -168,10 +168,21 @@ export function describeClip(clip: Clip, place?: Place): string {
 export function describeLocation(clip: Clip, place?: Place, sentence?: string): string | null {
   if (!place) return null;
   const s = sentence ?? describeClip(clip, place);
+  const named = s.toLowerCase().includes(place.name.toLowerCase());
+
+  /*
+   * Outside India, lead with the country — it is the part a reader needs, and
+   * "Bagmati" alone tells almost nobody anything. Renders "Kathmandu, Nepal",
+   * or just "Nepal" for a country-level row. Non-India footage is in the
+   * archive on purpose (AUDIT.md §K), so it gets a real location line rather
+   * than a blank one.
+   */
+  if (place.country && place.country !== 'India') {
+    if (place.name === place.country) return named ? null : place.country;
+    return named ? place.country : `${place.name}, ${place.country}`;
+  }
 
   // If the sentence names the town, the state still adds something.
-  if (s.toLowerCase().includes(place.name.toLowerCase())) {
-    return place.name === place.state ? null : place.state;
-  }
+  if (named) return place.name === place.state ? null : place.state;
   return place.name === place.state ? place.state : `${place.name}, ${place.state}`;
 }

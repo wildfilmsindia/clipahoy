@@ -60,6 +60,7 @@ export function splitZones(description: string): Zones {
 export type GazetteerEntry = {
   district: string;
   state: string;
+  country?: string;
   region: string;
   terrain: string;
   lat: number;

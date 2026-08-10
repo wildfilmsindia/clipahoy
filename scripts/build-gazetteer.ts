@@ -21,6 +21,9 @@ import path from 'node:path';
 
 type Row = [name: string, district: string, state: string, region: string, terrain: string, lat: number, lng: number];
 
+/** Non-India rows carry their country explicitly; India rows default to it. */
+type WorldRow = [name: string, state: string, country: string, terrain: string, lat: number, lng: number];
+
 const STATES: Row[] = [
   ['Jammu and Kashmir', 'Jammu and Kashmir', 'Jammu and Kashmir', 'North', 'hills', 33.7782, 76.5762],
   ['Ladakh', 'Ladakh', 'Ladakh', 'North', 'hills', 34.2268, 77.5619],
@@ -234,6 +237,91 @@ const CITIES: Row[] = [
   ['Kullu', 'Kullu', 'Himachal Pradesh', 'North', 'hills', 31.9578, 77.1092],
 ];
 
+/**
+ * Places outside India.
+ *
+ * Included deliberately, not by omission. The archive holds ~3,800 clips shot
+ * outside India — Nepal (835), Bhutan (803) and Tibet (445) most of all, which
+ * is unsurprising for a Himalayan production house. Leaving them unplaceable
+ * would show real footage with a blank location line and quietly re-impose an
+ * India-only assumption the collection itself contradicts (AUDIT.md §K).
+ *
+ * Kept deliberately shallow: capital/major cities plus a country-level row, so
+ * a clip resolves to "Kathmandu, Nepal" or just "Nepal". We are not building a
+ * world gazetteer, only enough to caption footage honestly.
+ */
+const WORLD: WorldRow[] = [
+  // Himalayan neighbours — the bulk of the non-India material
+  ['Nepal', 'Nepal', 'Nepal', 'hills', 28.3949, 84.124],
+  ['Kathmandu', 'Bagmati', 'Nepal', 'hills', 27.7172, 85.324],
+  ['Pokhara', 'Gandaki', 'Nepal', 'hills', 28.2096, 83.9856],
+  ['Chitwan', 'Bagmati', 'Nepal', 'river valley', 27.5291, 84.3542],
+  ['Lumbini', 'Lumbini', 'Nepal', 'dry plains', 27.4833, 83.2767],
+  ['Bhaktapur', 'Bagmati', 'Nepal', 'hills', 27.671, 85.4298],
+  ['Nagarkot', 'Bagmati', 'Nepal', 'hills', 27.7154, 85.5209],
+  ['Annapurna', 'Gandaki', 'Nepal', 'hills', 28.5961, 83.8203],
+  ['Everest', 'Solukhumbu', 'Nepal', 'hills', 27.9881, 86.925],
+
+  ['Bhutan', 'Bhutan', 'Bhutan', 'hills', 27.5142, 90.4336],
+  ['Thimphu', 'Thimphu', 'Bhutan', 'hills', 27.4712, 89.6339],
+  ['Paro', 'Paro', 'Bhutan', 'hills', 27.4305, 89.4133],
+  ['Punakha', 'Punakha', 'Bhutan', 'hills', 27.5921, 89.8797],
+  ['Bumthang', 'Bumthang', 'Bhutan', 'hills', 27.6421, 90.7376],
+  ['Trongsa', 'Trongsa', 'Bhutan', 'hills', 27.5026, 90.5071],
+
+  /*
+   * Tibet is recorded as its own country value rather than folded into China.
+   * This is descriptive, not a sovereignty claim: the footage and its metadata
+   * say "Tibet", much of it filmed among Tibetan communities in India, and
+   * relabelling it would assert a position the source material does not.
+   *
+   * "Kailash" is deliberately NOT a row. It collides with the singer Kailash
+   * Kher, who appears throughout this archive — it mislabelled 100 music
+   * interviews as Tibetan mountain footage. Reachable via the alias
+   * "kailash mansarovar" instead, which is unambiguous.
+   */
+  ['Tibet', 'Tibet', 'Tibet', 'plateau', 31.6927, 88.0924],
+  ['Lhasa', 'Tibet', 'Tibet', 'plateau', 29.652, 91.1721],
+
+  // South Asia
+  ['Bangladesh', 'Bangladesh', 'Bangladesh', 'delta', 23.685, 90.3563],
+  ['Dhaka', 'Dhaka', 'Bangladesh', 'delta', 23.8103, 90.4125],
+  ['Chittagong', 'Chattogram', 'Bangladesh', 'coastal', 22.3569, 91.7832],
+  ['Sri Lanka', 'Sri Lanka', 'Sri Lanka', 'coastal', 7.8731, 80.7718],
+  ['Colombo', 'Western', 'Sri Lanka', 'coastal', 6.9271, 79.8612],
+  ['Pakistan', 'Pakistan', 'Pakistan', 'dry plains', 30.3753, 69.3451],
+  ['Afghanistan', 'Afghanistan', 'Afghanistan', 'dry plains', 33.9391, 67.71],
+  ['Kabul', 'Kabul', 'Afghanistan', 'dry plains', 34.5553, 69.2075],
+  ['Maldives', 'Maldives', 'Maldives', 'coastal', 3.2028, 73.2207],
+  ['Myanmar', 'Myanmar', 'Myanmar', 'river valley', 21.9162, 95.956],
+
+  // Africa
+  ['Kenya', 'Kenya', 'Kenya', 'dry plains', -0.0236, 37.9062],
+  ['Masai Mara', 'Narok', 'Kenya', 'dry plains', -1.4061, 35.0078],
+  ['Tanzania', 'Tanzania', 'Tanzania', 'dry plains', -6.369, 34.8888],
+
+  // Southeast and East Asia
+  ['Thailand', 'Thailand', 'Thailand', 'coastal', 15.87, 100.9925],
+  ['Bangkok', 'Bangkok', 'Thailand', 'delta', 13.7563, 100.5018],
+  ['Indonesia', 'Indonesia', 'Indonesia', 'coastal', -0.7893, 113.9213],
+  ['Bali', 'Bali', 'Indonesia', 'coastal', -8.3405, 115.092],
+  ['Singapore', 'Singapore', 'Singapore', 'coastal', 1.3521, 103.8198],
+  ['Cambodia', 'Cambodia', 'Cambodia', 'dry plains', 12.5657, 104.991],
+  ['Laos', 'Laos', 'Laos', 'hills', 19.8563, 102.4955],
+  ['Vietnam', 'Vietnam', 'Vietnam', 'coastal', 14.0583, 108.2772],
+  ['Japan', 'Japan', 'Japan', 'coastal', 36.2048, 138.2529],
+
+  // Middle East, Europe, Americas
+  ['Dubai', 'Dubai', 'United Arab Emirates', 'desert', 25.2048, 55.2708],
+  ['Abu Dhabi', 'Abu Dhabi', 'United Arab Emirates', 'desert', 24.4539, 54.3773],
+  ['London', 'England', 'United Kingdom', 'coastal', 51.5074, -0.1278],
+  ['France', 'France', 'France', 'coastal', 46.2276, 2.2137],
+  ['Paris', 'Ile-de-France', 'France', 'dry plains', 48.8566, 2.3522],
+  ['Amsterdam', 'North Holland', 'Netherlands', 'delta', 52.3676, 4.9041],
+  ['Switzerland', 'Switzerland', 'Switzerland', 'hills', 46.8182, 8.2275],
+  ['Geneva', 'Geneva', 'Switzerland', 'hills', 46.2044, 6.1432],
+];
+
 /** Spelling variants and older names that appear in titles and hashtags. */
 const ALIASES: Record<string, string> = {
   alleppey: 'alappuzha',
@@ -284,6 +372,8 @@ const ALIASES: Record<string, string> = {
   chhatisgarh: 'chhattisgarh',
   nainita: 'nainital',
   nasik: 'nashik',
+  'kailash mansarovar': 'tibet',
+  'mount kailash': 'tibet',
   'the andamans': 'andaman and nicobar islands',
   andamans: 'andaman and nicobar islands',
 
@@ -314,11 +404,27 @@ function slug(name: string): string {
 const places: Record<string, unknown> = {};
 
 for (const [name, district, state, region, terrain, lat, lng] of STATES) {
-  places[slug(name)] = { name, district, state, region, terrain, lat, lng, kind: 'state' };
+  places[slug(name)] = { name, district, state, country: 'India', region, terrain, lat, lng, kind: 'state' };
 }
 // Cities are written after states so a name appearing in both wins as a city.
 for (const [name, district, state, region, terrain, lat, lng] of CITIES) {
-  places[slug(name)] = { name, district, state, region, terrain, lat, lng, kind: 'city' };
+  places[slug(name)] = { name, district, state, country: 'India', region, terrain, lat, lng, kind: 'city' };
+}
+
+// Non-India rows. `kind` is 'city' when the row names a settlement and 'state'
+// when it names a whole country, so the town-level filters behave sensibly.
+for (const [name, state, country, terrain, lat, lng] of WORLD) {
+  places[slug(name)] = {
+    name,
+    district: state,
+    state,
+    country,
+    region: 'Outside India',
+    terrain,
+    lat,
+    lng,
+    kind: name === country || name === state ? 'state' : 'city',
+  };
 }
 
 const out = {

@@ -525,6 +525,7 @@ async function main() {
       name: e.name,
       district: e.district,
       state: e.state,
+      country: e.country ?? 'India',
       region: e.region as Region,
       terrain: e.terrain as Terrain,
       lat: e.lat,

@@ -8,9 +8,7 @@ import {
   type ArchiveFile,
   type Clip,
   type Place,
-  type Region,
   type Subject,
-  type Terrain,
 } from './types';
 
 /* ---------------------------------------------------------------------------
@@ -57,9 +55,8 @@ function load(): Archive {
   }
   parsed.clips = [...byId.values()];
 
-  // Fail loudly at boot rather than silently serving a broken archive. A clip
-  // tagged with a subject outside the controlled vocabulary would produce a
-  // subject outside the controlled vocabulary is a data error.
+  // Fail loudly at boot rather than silently serving a broken archive: a
+  // subject outside the controlled vocabulary is a data error, not a warning.
   for (const clip of parsed.clips) {
     // placeId is null for legitimately unplaceable footage (wildlife, nature).
     if (clip.placeId !== null && !placeIds.has(clip.placeId)) {
@@ -145,43 +142,7 @@ export function getAllClips(): Clip[] {
   return archive().clips;
 }
 
-/* ------------------------------- aggregates ------------------------------ */
-
-/** Regions that actually hold footage, with clip counts. Drives question one. */
-export function getRegionCoverage(): { region: Region; clips: number; places: number }[] {
-  const { places, clipsByPlace } = archive();
-  const byRegion = new Map<Region, { clips: number; places: number }>();
-
-  for (const place of places) {
-    const entry = byRegion.get(place.region) ?? { clips: 0, places: 0 };
-    entry.clips += clipsByPlace.get(place.id)?.length ?? 0;
-    entry.places += 1;
-    byRegion.set(place.region, entry);
-  }
-
-  return [...byRegion.entries()]
-    .map(([region, v]) => ({ region, ...v }))
-    .sort((a, b) => b.clips - a.clips);
-}
-
-export function getPlacesInRegion(region: Region): Place[] {
-  return archive().places.filter((p) => p.region === region);
-}
-
-/** Subject counts across a set of places. Drives question two. */
-export function getSubjectCoverage(places: Place[]): { subject: Subject; clips: number }[] {
-  const totals = new Map<Subject, number>();
-  for (const place of places) {
-    for (const [subject, count] of Object.entries(place.coverage)) {
-      totals.set(subject as Subject, (totals.get(subject as Subject) ?? 0) + (count ?? 0));
-    }
-  }
-  return [...totals.entries()]
-    .map(([subject, clips]) => ({ subject, clips }))
-    .sort((a, b) => b.clips - a.clips || a.subject.localeCompare(b.subject));
-}
-
-/* ------------------------------ relationships ---------------------------- */
+/* ------------------------------- coverage -------------------------------- */
 
 /**
  * Places the archive actually covers well enough to browse.
@@ -212,16 +173,5 @@ export function getCoveredPlaces(minUsable = 20): { place: Place; clips: number 
     .sort((a, b) => b.clips - a.clips);
 }
 
-export function placesInDistrict(place: Place): Place[] {
-  return archive().places.filter(
-    (p) => p.id !== place.id && p.district === place.district && p.state === place.state,
-  );
-}
 
-export function placesInState(place: Place): Place[] {
-  return archive().places.filter((p) => p.id !== place.id && p.state === place.state);
-}
 
-export function placesWithTerrain(terrain: Terrain, exclude: string[] = []): Place[] {
-  return archive().places.filter((p) => p.terrain === terrain && !exclude.includes(p.id));
-}

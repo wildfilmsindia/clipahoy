@@ -33,6 +33,8 @@ export const REGIONS = [
   'West',
   'South',
   'Central',
+  /** Everything outside India. Kept coarse — we do not sub-region the world. */
+  'Outside India',
 ] as const;
 
 export type Region = (typeof REGIONS)[number];
@@ -89,7 +91,19 @@ export type Place = {
   id: string;
   name: string;
   district: string;
+  /**
+   * The state, province or equivalent. For non-India places this holds the
+   * province ("Bagmati") or repeats the country where no useful subdivision
+   * applies.
+   */
   state: string;
+  /**
+   * Country. Defaults to "India" — the archive is overwhelmingly Indian — but
+   * it holds real footage from ~25 other countries, heavily Nepal, Bhutan and
+   * Tibet. That material is included on purpose (AUDIT.md §K); excluding it
+   * would re-impose an India-only assumption the data does not support.
+   */
+  country: string;
   region: Region;
   terrain: Terrain;
   lat: number;
