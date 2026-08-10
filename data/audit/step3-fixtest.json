@@ -1,0 +1,1004 @@
+{
+  "rows": [
+    {
+      "n": 1,
+      "place": "Delhi",
+      "zone": "hashtag",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": "delhi",
+      "optB": "delhi"
+    },
+    {
+      "n": 2,
+      "place": "Uttarkashi",
+      "zone": "hashtag",
+      "truth": "Uttarkashi",
+      "origVerdict": "CORRECT",
+      "optA": null,
+      "optB": "uttarkashi"
+    },
+    {
+      "n": 3,
+      "place": "Badrinath",
+      "zone": "prose",
+      "truth": "uttarakhand",
+      "origVerdict": "ERROR",
+      "optA": "uttarakhand",
+      "optB": "uttarakhand"
+    },
+    {
+      "n": 4,
+      "place": "Manipur",
+      "zone": "hashtag",
+      "truth": "Manipur",
+      "origVerdict": "CORRECT",
+      "optA": "manipur",
+      "optB": "manipur"
+    },
+    {
+      "n": 5,
+      "place": "Leh",
+      "zone": "hashtag",
+      "truth": "Leh",
+      "origVerdict": "CORRECT",
+      "optA": "leh",
+      "optB": "leh"
+    },
+    {
+      "n": 6,
+      "place": "Delhi",
+      "zone": "title",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": "delhi",
+      "optB": "delhi"
+    },
+    {
+      "n": 7,
+      "place": "Odisha",
+      "zone": "title",
+      "truth": "Odisha",
+      "origVerdict": "CORRECT",
+      "optA": "odisha",
+      "optB": "odisha"
+    },
+    {
+      "n": 8,
+      "place": "Ranthambore",
+      "zone": "title",
+      "truth": "Ranthambore",
+      "origVerdict": "CORRECT",
+      "optA": "ranthambore",
+      "optB": "ranthambore"
+    },
+    {
+      "n": 9,
+      "place": "Surajkund",
+      "zone": "title",
+      "truth": "Surajkund",
+      "origVerdict": "CORRECT",
+      "optA": "surajkund",
+      "optB": "surajkund"
+    },
+    {
+      "n": 10,
+      "place": "Delhi",
+      "zone": "title",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": "delhi",
+      "optB": "delhi"
+    },
+    {
+      "n": 11,
+      "place": "Mussoorie",
+      "zone": "hashtag",
+      "truth": "Mussoorie",
+      "origVerdict": "CORRECT",
+      "optA": "mussoorie",
+      "optB": "mussoorie"
+    },
+    {
+      "n": 12,
+      "place": "Rajasthan",
+      "zone": "hashtag",
+      "truth": "Rajasthan",
+      "origVerdict": "CORRECT",
+      "optA": null,
+      "optB": "rajasthan"
+    },
+    {
+      "n": 13,
+      "place": "Coimbatore",
+      "zone": "hashtag",
+      "truth": "karnataka",
+      "origVerdict": "ERROR",
+      "optA": null,
+      "optB": null
+    },
+    {
+      "n": 14,
+      "place": "Jabbarkhet",
+      "zone": "prose",
+      "truth": "Jabbarkhet",
+      "origVerdict": "CORRECT",
+      "optA": null,
+      "optB": "jabbarkhet"
+    },
+    {
+      "n": 15,
+      "place": "Assam",
+      "zone": "title",
+      "truth": "Assam",
+      "origVerdict": "CORRECT",
+      "optA": "assam",
+      "optB": "assam"
+    },
+    {
+      "n": 16,
+      "place": "Jabbarkhet",
+      "zone": "title",
+      "truth": "Jabbarkhet",
+      "origVerdict": "CORRECT",
+      "optA": "jabbarkhet",
+      "optB": "jabbarkhet"
+    },
+    {
+      "n": 17,
+      "place": "Delhi",
+      "zone": "prose",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": null,
+      "optB": "delhi"
+    },
+    {
+      "n": 18,
+      "place": "Jabbarkhet",
+      "zone": "title",
+      "truth": "Jabbarkhet",
+      "origVerdict": "CORRECT",
+      "optA": "jabbarkhet",
+      "optB": "jabbarkhet"
+    },
+    {
+      "n": 19,
+      "place": "Nashik",
+      "zone": "hashtag",
+      "truth": "Nashik",
+      "origVerdict": "CORRECT",
+      "optA": "nashik",
+      "optB": "nashik"
+    },
+    {
+      "n": 20,
+      "place": "Meerut",
+      "zone": "title",
+      "truth": "Meerut",
+      "origVerdict": "CORRECT",
+      "optA": "meerut",
+      "optB": "meerut"
+    },
+    {
+      "n": 21,
+      "place": "Khajuraho",
+      "zone": "playlist title",
+      "truth": "Khajuraho",
+      "origVerdict": "CORRECT",
+      "optA": "khajuraho",
+      "optB": "khajuraho"
+    },
+    {
+      "n": 22,
+      "place": "Gurugram",
+      "zone": "title",
+      "truth": "Gurugram",
+      "origVerdict": "CORRECT",
+      "optA": "gurugram",
+      "optB": "gurugram"
+    },
+    {
+      "n": 23,
+      "place": "Varanasi",
+      "zone": "prose",
+      "truth": null,
+      "origVerdict": "ERROR",
+      "optA": null,
+      "optB": null
+    },
+    {
+      "n": 24,
+      "place": "Delhi",
+      "zone": "prose",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": null,
+      "optB": null
+    },
+    {
+      "n": 25,
+      "place": "Kolkata",
+      "zone": "prose",
+      "truth": "Kolkata",
+      "origVerdict": "CORRECT",
+      "optA": null,
+      "optB": null
+    },
+    {
+      "n": 26,
+      "place": "Delhi",
+      "zone": "prose",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": null,
+      "optB": "delhi"
+    },
+    {
+      "n": 27,
+      "place": "Indore",
+      "zone": "prose",
+      "truth": "madhya pradesh",
+      "origVerdict": "ERROR",
+      "optA": null,
+      "optB": null
+    },
+    {
+      "n": 28,
+      "place": "Visakhapatnam",
+      "zone": "prose",
+      "truth": "delhi",
+      "origVerdict": "ERROR",
+      "optA": "delhi",
+      "optB": "delhi"
+    },
+    {
+      "n": 29,
+      "place": "Jharkhand",
+      "zone": "hashtag",
+      "truth": "Jharkhand",
+      "origVerdict": "CORRECT",
+      "optA": null,
+      "optB": null
+    },
+    {
+      "n": 30,
+      "place": "Ahmedabad",
+      "zone": "playlist title",
+      "truth": "Ahmedabad",
+      "origVerdict": "CORRECT",
+      "optA": "ahmedabad",
+      "optB": "ahmedabad"
+    },
+    {
+      "n": 31,
+      "place": "Ahmedabad",
+      "zone": "playlist title",
+      "truth": "Ahmedabad",
+      "origVerdict": "CORRECT",
+      "optA": "ahmedabad",
+      "optB": "ahmedabad"
+    },
+    {
+      "n": 32,
+      "place": "Bhuj",
+      "zone": "playlist title",
+      "truth": "Bhuj",
+      "origVerdict": "CORRECT",
+      "optA": "bhuj",
+      "optB": "bhuj"
+    },
+    {
+      "n": 33,
+      "place": "Delhi",
+      "zone": "playlist title",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": "delhi",
+      "optB": "delhi"
+    },
+    {
+      "n": 34,
+      "place": "Delhi",
+      "zone": "playlist title",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": "delhi",
+      "optB": "delhi"
+    },
+    {
+      "n": 35,
+      "place": "Delhi",
+      "zone": "prose",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": null,
+      "optB": "delhi"
+    },
+    {
+      "n": 36,
+      "place": "Delhi",
+      "zone": "playlist title",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": "delhi",
+      "optB": "delhi"
+    },
+    {
+      "n": 37,
+      "place": "Delhi",
+      "zone": "playlist title",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": "delhi",
+      "optB": "delhi"
+    },
+    {
+      "n": 38,
+      "place": "Gangtok",
+      "zone": "playlist title",
+      "truth": "Gangtok",
+      "origVerdict": "CORRECT",
+      "optA": "gangtok",
+      "optB": "gangtok"
+    },
+    {
+      "n": 39,
+      "place": "Jaipur",
+      "zone": "playlist title",
+      "truth": "Jaipur",
+      "origVerdict": "CORRECT",
+      "optA": "jaipur",
+      "optB": "jaipur"
+    },
+    {
+      "n": 40,
+      "place": "Aizawl",
+      "zone": "prose",
+      "truth": "Aizawl",
+      "origVerdict": "CORRECT",
+      "optA": null,
+      "optB": "aizawl"
+    },
+    {
+      "n": 41,
+      "place": "Kolkata",
+      "zone": "prose",
+      "truth": "Kolkata",
+      "origVerdict": "CORRECT",
+      "optA": null,
+      "optB": null
+    },
+    {
+      "n": 42,
+      "place": "Raipur",
+      "zone": "playlist title",
+      "truth": "punjab",
+      "origVerdict": "ERROR",
+      "optA": "raipur",
+      "optB": "raipur"
+    },
+    {
+      "n": 43,
+      "place": "Mumbai",
+      "zone": "playlist title",
+      "truth": "Mumbai",
+      "origVerdict": "CORRECT",
+      "optA": "mumbai",
+      "optB": "mumbai"
+    },
+    {
+      "n": 44,
+      "place": "Mumbai",
+      "zone": "playlist title",
+      "truth": "Mumbai",
+      "origVerdict": "CORRECT",
+      "optA": "mumbai",
+      "optB": "mumbai"
+    },
+    {
+      "n": 45,
+      "place": "Visakhapatnam",
+      "zone": "title",
+      "truth": "Visakhapatnam",
+      "origVerdict": "CORRECT",
+      "optA": "visakhapatnam",
+      "optB": "visakhapatnam"
+    },
+    {
+      "n": 46,
+      "place": "West Bengal",
+      "zone": "prose",
+      "truth": null,
+      "origVerdict": "ERROR",
+      "optA": null,
+      "optB": null
+    },
+    {
+      "n": 47,
+      "place": "Delhi",
+      "zone": "title",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": "delhi",
+      "optB": "delhi"
+    },
+    {
+      "n": 48,
+      "place": "Delhi",
+      "zone": "prose",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": null,
+      "optB": null
+    },
+    {
+      "n": 49,
+      "place": "Manali",
+      "zone": "title",
+      "truth": "Manali",
+      "origVerdict": "CORRECT",
+      "optA": "manali",
+      "optB": "manali"
+    },
+    {
+      "n": 50,
+      "place": "Delhi",
+      "zone": "title",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": "delhi",
+      "optB": "delhi"
+    },
+    {
+      "n": 51,
+      "place": "Mysuru",
+      "zone": "playlist title",
+      "truth": "bengaluru",
+      "origVerdict": "ERROR",
+      "optA": "mysuru",
+      "optB": "mysuru"
+    },
+    {
+      "n": 52,
+      "place": "Allahabad",
+      "zone": "title",
+      "truth": "Allahabad",
+      "origVerdict": "CORRECT",
+      "optA": "allahabad",
+      "optB": "allahabad"
+    },
+    {
+      "n": 53,
+      "place": "Haryana",
+      "zone": "prose",
+      "truth": "rajasthan",
+      "origVerdict": "ERROR",
+      "optA": null,
+      "optB": "rajasthan"
+    },
+    {
+      "n": 54,
+      "place": "Jaipur",
+      "zone": "prose",
+      "truth": "delhi",
+      "origVerdict": "ERROR",
+      "optA": null,
+      "optB": null
+    },
+    {
+      "n": 55,
+      "place": "Delhi",
+      "zone": "title",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": "delhi",
+      "optB": "delhi"
+    },
+    {
+      "n": 56,
+      "place": "Kohima",
+      "zone": "prose",
+      "truth": "nagaland",
+      "origVerdict": "ERROR",
+      "optA": null,
+      "optB": null
+    },
+    {
+      "n": 57,
+      "place": "Madurai",
+      "zone": "prose",
+      "truth": "tamil nadu",
+      "origVerdict": "ERROR",
+      "optA": null,
+      "optB": null
+    },
+    {
+      "n": 58,
+      "place": "Delhi",
+      "zone": "prose",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": null,
+      "optB": "delhi"
+    },
+    {
+      "n": 59,
+      "place": "Kolkata",
+      "zone": "prose",
+      "truth": "Kolkata",
+      "origVerdict": "CORRECT",
+      "optA": null,
+      "optB": null
+    },
+    {
+      "n": 60,
+      "place": "Bengaluru",
+      "zone": "prose",
+      "truth": "delhi",
+      "origVerdict": "ERROR",
+      "optA": "delhi",
+      "optB": "delhi"
+    },
+    {
+      "n": 61,
+      "place": "Leh",
+      "zone": "prose",
+      "truth": "Leh",
+      "origVerdict": "CORRECT",
+      "optA": "ladakh",
+      "optB": "leh"
+    },
+    {
+      "n": 62,
+      "place": "Assam",
+      "zone": "title",
+      "truth": "Assam",
+      "origVerdict": "CORRECT",
+      "optA": "assam",
+      "optB": "assam"
+    },
+    {
+      "n": 63,
+      "place": "Karnataka",
+      "zone": "prose",
+      "truth": null,
+      "origVerdict": "ERROR",
+      "optA": null,
+      "optB": null
+    },
+    {
+      "n": 64,
+      "place": "Kohima",
+      "zone": "prose",
+      "truth": "Kohima",
+      "origVerdict": "CORRECT",
+      "optA": null,
+      "optB": "kohima"
+    },
+    {
+      "n": 65,
+      "place": "Delhi",
+      "zone": "title",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": "delhi",
+      "optB": "delhi"
+    },
+    {
+      "n": 66,
+      "place": "Srinagar",
+      "zone": "title",
+      "truth": "uttarakhand",
+      "origVerdict": "ERROR",
+      "optA": "srinagar",
+      "optB": "srinagar"
+    },
+    {
+      "n": 67,
+      "place": "Delhi",
+      "zone": "title",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": "delhi",
+      "optB": "delhi"
+    },
+    {
+      "n": 68,
+      "place": "Kohima",
+      "zone": "prose",
+      "truth": "Kohima",
+      "origVerdict": "CORRECT",
+      "optA": "nagaland",
+      "optB": "kohima"
+    },
+    {
+      "n": 69,
+      "place": "Imphal",
+      "zone": "playlist title",
+      "truth": "Imphal",
+      "origVerdict": "CORRECT",
+      "optA": "imphal",
+      "optB": "imphal"
+    },
+    {
+      "n": 70,
+      "place": "Bengaluru",
+      "zone": "prose",
+      "truth": "delhi",
+      "origVerdict": "ERROR",
+      "optA": "punjab",
+      "optB": "punjab"
+    },
+    {
+      "n": 71,
+      "place": "Delhi",
+      "zone": "playlist title",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": "delhi",
+      "optB": "delhi"
+    },
+    {
+      "n": 72,
+      "place": "Jaipur",
+      "zone": "prose",
+      "truth": "Jaipur",
+      "origVerdict": "CORRECT",
+      "optA": "rajasthan",
+      "optB": "jaipur"
+    },
+    {
+      "n": 73,
+      "place": "Delhi",
+      "zone": "title",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": "delhi",
+      "optB": "delhi"
+    },
+    {
+      "n": 74,
+      "place": "Delhi",
+      "zone": "title",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": "delhi",
+      "optB": "delhi"
+    },
+    {
+      "n": 75,
+      "place": "Leh",
+      "zone": "prose",
+      "truth": "Leh",
+      "origVerdict": "CORRECT",
+      "optA": "ladakh",
+      "optB": "ladakh"
+    },
+    {
+      "n": 76,
+      "place": "Jodhpur",
+      "zone": "prose",
+      "truth": "jaisalmer",
+      "origVerdict": "ERROR",
+      "optA": "rajasthan",
+      "optB": "rajasthan"
+    },
+    {
+      "n": 77,
+      "place": "Delhi",
+      "zone": "prose",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": null,
+      "optB": null
+    },
+    {
+      "n": 78,
+      "place": "Gujarat",
+      "zone": "prose",
+      "truth": "tamil nadu",
+      "origVerdict": "ERROR",
+      "optA": null,
+      "optB": null
+    },
+    {
+      "n": 79,
+      "place": "Allahabad",
+      "zone": "title",
+      "truth": "Allahabad",
+      "origVerdict": "CORRECT",
+      "optA": "allahabad",
+      "optB": "allahabad"
+    },
+    {
+      "n": 80,
+      "place": "Tamil Nadu",
+      "zone": "prose",
+      "truth": "Tamil Nadu",
+      "origVerdict": "CORRECT",
+      "optA": null,
+      "optB": null
+    },
+    {
+      "n": 81,
+      "place": "Mathura",
+      "zone": "title",
+      "truth": "Mathura",
+      "origVerdict": "CORRECT",
+      "optA": "mathura",
+      "optB": "mathura"
+    },
+    {
+      "n": 82,
+      "place": "Delhi",
+      "zone": "title",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": "delhi",
+      "optB": "delhi"
+    },
+    {
+      "n": 83,
+      "place": "Delhi",
+      "zone": "playlist title",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": "delhi",
+      "optB": "delhi"
+    },
+    {
+      "n": 84,
+      "place": "Karnataka",
+      "zone": "title",
+      "truth": "Karnataka",
+      "origVerdict": "CORRECT",
+      "optA": "karnataka",
+      "optB": "karnataka"
+    },
+    {
+      "n": 85,
+      "place": "Kaziranga",
+      "zone": "prose",
+      "truth": "Kaziranga",
+      "origVerdict": "CORRECT",
+      "optA": null,
+      "optB": "kaziranga"
+    },
+    {
+      "n": 86,
+      "place": "Corbett",
+      "zone": "title",
+      "truth": "Corbett",
+      "origVerdict": "CORRECT",
+      "optA": "corbett",
+      "optB": "corbett"
+    },
+    {
+      "n": 87,
+      "place": "Lucknow",
+      "zone": "title",
+      "truth": "Lucknow",
+      "origVerdict": "CORRECT",
+      "optA": "lucknow",
+      "optB": "lucknow"
+    },
+    {
+      "n": 88,
+      "place": "Delhi",
+      "zone": "title",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": "delhi",
+      "optB": "delhi"
+    },
+    {
+      "n": 89,
+      "place": "Jawai",
+      "zone": "title",
+      "truth": "Jawai",
+      "origVerdict": "CORRECT",
+      "optA": "jawai",
+      "optB": "jawai"
+    },
+    {
+      "n": 90,
+      "place": "Puri",
+      "zone": "title",
+      "truth": null,
+      "origVerdict": "ERROR",
+      "optA": "puri",
+      "optB": "puri"
+    },
+    {
+      "n": 91,
+      "place": "Rajasthan",
+      "zone": "title",
+      "truth": "Rajasthan",
+      "origVerdict": "CORRECT",
+      "optA": "rajasthan",
+      "optB": "rajasthan"
+    },
+    {
+      "n": 92,
+      "place": "Meghalaya",
+      "zone": "playlist title",
+      "truth": "delhi",
+      "origVerdict": "ERROR",
+      "optA": "meghalaya",
+      "optB": "meghalaya"
+    },
+    {
+      "n": 93,
+      "place": "Jammu",
+      "zone": "playlist title",
+      "truth": "jammu and kashmir",
+      "origVerdict": "ERROR",
+      "optA": "jammu",
+      "optB": "jammu"
+    },
+    {
+      "n": 94,
+      "place": "Jhansi",
+      "zone": "prose",
+      "truth": "delhi",
+      "origVerdict": "ERROR",
+      "optA": "madhya pradesh",
+      "optB": "jhansi"
+    },
+    {
+      "n": 95,
+      "place": "Delhi",
+      "zone": "title",
+      "truth": "Delhi",
+      "origVerdict": "CORRECT",
+      "optA": "delhi",
+      "optB": "delhi"
+    },
+    {
+      "n": 96,
+      "place": "Madhya Pradesh",
+      "zone": "title",
+      "truth": "Madhya Pradesh",
+      "origVerdict": "CORRECT",
+      "optA": "madhya pradesh",
+      "optB": "madhya pradesh"
+    },
+    {
+      "n": 97,
+      "place": "Arunachal Pradesh",
+      "zone": "prose",
+      "truth": "Arunachal Pradesh",
+      "origVerdict": "CORRECT",
+      "optA": null,
+      "optB": "arunachal pradesh"
+    },
+    {
+      "n": 98,
+      "place": "Yamunotri",
+      "zone": "title",
+      "truth": "Yamunotri",
+      "origVerdict": "CORRECT",
+      "optA": "yamunotri",
+      "optB": "yamunotri"
+    },
+    {
+      "n": 99,
+      "place": "Arunachal Pradesh",
+      "zone": "playlist title",
+      "truth": "Arunachal Pradesh",
+      "origVerdict": "CORRECT",
+      "optA": "arunachal pradesh",
+      "optB": "arunachal pradesh"
+    },
+    {
+      "n": 100,
+      "place": "Arunachal Pradesh",
+      "zone": "playlist title",
+      "truth": "Arunachal Pradesh",
+      "origVerdict": "CORRECT",
+      "optA": "arunachal pradesh",
+      "optB": "arunachal pradesh"
+    }
+  ],
+  "optionA": {
+    "precision": 81.69014084507043,
+    "correct": 58,
+    "wrong": 13,
+    "none": 29,
+    "lostCorrect": [
+      2,
+      12,
+      14,
+      17,
+      24,
+      25,
+      26,
+      29,
+      35,
+      40,
+      41,
+      48,
+      58,
+      59,
+      61,
+      64,
+      68,
+      72,
+      75,
+      77,
+      80,
+      85,
+      97
+    ],
+    "stillWrong": [
+      42,
+      51,
+      66,
+      70,
+      76,
+      90,
+      92,
+      93,
+      94
+    ],
+    "fixedErrors": [
+      3,
+      13,
+      23,
+      27,
+      28,
+      46,
+      53,
+      54,
+      56,
+      57,
+      60,
+      63,
+      78
+    ]
+  },
+  "optionB": {
+    "precision": 87.95180722891565,
+    "correct": 73,
+    "wrong": 10,
+    "none": 17,
+    "lostCorrect": [
+      24,
+      25,
+      29,
+      41,
+      48,
+      59,
+      75,
+      77,
+      80
+    ],
+    "stillWrong": [
+      42,
+      51,
+      66,
+      70,
+      76,
+      90,
+      92,
+      93,
+      94
+    ],
+    "fixedErrors": [
+      3,
+      13,
+      23,
+      27,
+      28,
+      46,
+      53,
+      54,
+      56,
+      57,
+      60,
+      63,
+      78
+    ]
+  }
+}

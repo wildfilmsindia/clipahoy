@@ -1,26 +1,109 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/**
+ * Palette derived from an Indian street at night before LED — everything cold
+ * and blue-black except where one sodium lamp falls. Warm text on a cool
+ * ground, and a single warm accent that is the only light source on the page.
+ */
+@theme {
+  --color-ground: #0b0e12;
+  --color-raised: #141922;
+  --color-hairline: #232a35;
+  --color-ghost: #171e28;
+  --color-paper: #ede7dc;
+  --color-slate: #8c96a4;
+  --color-muted: #5a636f;
+  --color-sodium: #e9a44c;
+
+  --font-display: var(--font-newsreader), ui-serif, Georgia, serif;
+  --font-sans: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  html {
+    background: var(--color-ground);
+    /* The page is dark by design, not by preference — tell the UA so form
+       controls and scrollbars match instead of rendering light. */
+    color-scheme: dark;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    background: var(--color-ground);
+    color: var(--color-paper);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Visible focus everywhere, on the accent so it reads as the same light
+     source as the buttons. :focus-visible keeps it off mouse clicks. */
+  :focus-visible {
+    outline: 2px solid var(--color-sodium);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background: var(--color-sodium);
+    color: var(--color-ground);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /* The one accent, with its bloom. Used on a single button per screen. */
+  .lamp {
+    box-shadow: 0 0 40px -4px color-mix(in srgb, var(--color-sodium) 32%, transparent);
+  }
+
+  .ghost-numeral {
+    font-family: var(--font-display);
+    color: var(--color-ghost);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.03em;
+    line-height: 0.8;
+    user-select: none;
+  }
+
+  .rise {
+    animation: rise 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Motion is decoration here, never information — everything below still reads
+   identically with it switched off. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer utilities {
+  /* Visually hidden but available to screen readers and to keyboard focus. */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border-width: 0;
+  }
 }

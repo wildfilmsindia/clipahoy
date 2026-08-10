@@ -1,0 +1,548 @@
+[
+  {
+    "index": 647,
+    "id": "IwL18AjLHpc",
+    "title": "Striated Heron hunting in a wetland habitat in Bharatpur India",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Bharatpur"
+  },
+  {
+    "index": 1334,
+    "id": "PSytpLQIgxY",
+    "title": "Pied Myna or Sturnus contra: Asian Pied Starling preening on tree branch with fruits",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Asian"
+  },
+  {
+    "index": 1503,
+    "id": "GD3i4bPCPZw",
+    "title": "Black-winged Stilt Bird in Wetlands | Elegant Long-Legged Wader in India",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Wetlands"
+  },
+  {
+    "index": 1566,
+    "id": "-uUtDstYRQs",
+    "title": "A Small Tortoiseshell butterfly delicately perches on a cluster of pink Bergenia ciliata flowers",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Bergenia"
+  },
+  {
+    "index": 1821,
+    "id": "KZHyg7z8hRM",
+    "title": "Close-up of Small Copper butterfly on flower",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Copper"
+  },
+  {
+    "index": 2413,
+    "id": "gE7KyIpYTCY",
+    "title": "A Common Tailorbird a small and Songbird widely found across South and Southeast Asia.",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Tailorbird"
+  },
+  {
+    "index": 2739,
+    "id": "wE_KNOS2cn0",
+    "title": "Great Barbet in Heavy Rain on dense Tree",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Rain"
+  },
+  {
+    "index": 2805,
+    "id": "nMoWcpQcAVU",
+    "title": "Indian Birds & Reptile Moments – Stunning nature close-ups",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Reptile"
+  },
+  {
+    "index": 2890,
+    "id": "9L4vOOxpF1k",
+    "title": "A Cluster of Tree Dahlia plants dancing in natural breeze in motidhar",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Tree"
+  },
+  {
+    "index": 2919,
+    "id": "MU_nyJMfIFU",
+    "title": "Nilgai Drinking at a Water Hole in the Wilderness of Jhalana",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Hole"
+  },
+  {
+    "index": 3989,
+    "id": "zlLJCcdV1bg",
+    "title": "Green-backed Tit and Oriental White Eye birds come to our garden tap for a summer-time drink",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Eye"
+  },
+  {
+    "index": 5974,
+    "id": "fYj4Gl_sYUY",
+    "title": "Indian Everest Expedition 1968: HMI motto reads - Make (you) Climb from Peak to Peak",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Everest"
+  },
+  {
+    "index": 6043,
+    "id": "p1HOGgQuBnE",
+    "title": "Brahminy Myna is so-named for its little choti at the back of its head - Black-headed Myna",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Blackheaded"
+  },
+  {
+    "index": 6530,
+    "id": "7KdL0tEDue4",
+    "title": "Silver filigree and jewellery shops on bazaar street in Karimnagar, customers pay for silver in cash",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Karimnagar"
+  },
+  {
+    "index": 7994,
+    "id": "chUwiGOKhNQ",
+    "title": "Woman smoking hookah: Rajasthani woman from Banjara community smokes  Hubble-bubble hookah",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Banjara"
+  },
+  {
+    "index": 8041,
+    "id": "EG8l-ECSM8g",
+    "title": "Crimson-breasted Barbet has dug this One Rupee sized hole in a Persian Lilac tree trunk to nest in",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Rupee"
+  },
+  {
+    "index": 8141,
+    "id": "qmsF1XyNREU",
+    "title": "Common Hawk Cuckoo or Brainfever Bird looks more like a raptor. Hence it's name Hawk Cuckoo!",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Brainfever"
+  },
+  {
+    "index": 8155,
+    "id": "LVQ65rJtIpY",
+    "title": "Women and families eat daal and roti near Safdarjung Hospital : Chapati - lentils for the masses",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Safdarjung"
+  },
+  {
+    "index": 8999,
+    "id": "wYfqMogi5BQ",
+    "title": "Sleepy Owl of Sarojini Nagar - dropping off to sleep in the daytime!",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Sarojini"
+  },
+  {
+    "index": 11608,
+    "id": "x1wcj8reIYg",
+    "title": "The Times of India Newspaper being printed in India a few decades ago",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Newspaper"
+  },
+  {
+    "index": 12321,
+    "id": "QvmeXMDDLzk",
+    "title": "Video gaming consoles - Sony Playstation, Microsoft XBox, Dreamcast review",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Playstation"
+  },
+  {
+    "index": 12710,
+    "id": "sb2HgeMDDkk",
+    "title": "NGO, Helpage India and Rahat organised 'Active Ageing For Healthy Living'",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Rahat"
+  },
+  {
+    "index": 12791,
+    "id": "y56iltGNpl8",
+    "title": "Revathi, Indian film actress speaks about her directorial debut film Mitr, My Friend",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Mitr"
+  },
+  {
+    "index": 12932,
+    "id": "llWFzRJWZjM",
+    "title": "Hot male Sabeer Bhatia : Hotmail was a web-based email system",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Bhatia"
+  },
+  {
+    "index": 13641,
+    "id": "hS9lSOJomNc",
+    "title": "Expedition porters camp at Dibrughetta within Nanda Devi Sanctuary",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Dibrughetta"
+  },
+  {
+    "index": 13798,
+    "id": "k2r6lnxTpkg",
+    "title": "Kaikeyi demands Bharath's Raj tilak : Part 5 Day 3",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Raj"
+  },
+  {
+    "index": 14049,
+    "id": "V6i1lFzvf8k",
+    "title": "Goose drinks water in pond filled with Water Lettuce as seen up close",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Lettuce"
+  },
+  {
+    "index": 14238,
+    "id": "CqWQi_BzfuA",
+    "title": "Shurim Tso Lake From Below Langma La",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Tso"
+  },
+  {
+    "index": 14849,
+    "id": "YSwsRb47UTY",
+    "title": "Cute Lion Cub gets rescued in India, from open well",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Cub"
+  },
+  {
+    "index": 14884,
+    "id": "KvTKJO7AfpM",
+    "title": "Pride of India: Military bands of the Army, Navy and Air Force",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Military"
+  },
+  {
+    "index": 14993,
+    "id": "zo3HStATK1Q",
+    "title": "Woman from Adi tribe weaves traditional Arunachali fabric",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Arunachali"
+  },
+  {
+    "index": 15223,
+    "id": "88W0SfOmeVY",
+    "title": "Indian politicians sing National Anthem | Swearing Ceremony of BJP Government in 90's",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Anthem"
+  },
+  {
+    "index": 15421,
+    "id": "JdX7uBTWQ7U",
+    "title": "Bhujangasana or Cobra Pose : Yoga Classes by Raja",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Yoga"
+  },
+  {
+    "index": 15702,
+    "id": "m-kUjchdABs",
+    "title": "Hindustan Ambassador or new-age Morris Oxford in use as Indian government staff car",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Morris"
+  },
+  {
+    "index": 15952,
+    "id": "baNtPJ0oEuE",
+    "title": "Jain Story Bhagvan Bahubali Jivan Charitra 1-7",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Bhagvan"
+  },
+  {
+    "index": 15965,
+    "id": "GsRWrBwV_Jc",
+    "title": "Jain Bahubali Bronze, India",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Bronze"
+  },
+  {
+    "index": 15975,
+    "id": "9sDhaxq2BBk",
+    "title": "Mastakabhisheka - Karkala Bahubali 2015",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Karkala"
+  },
+  {
+    "index": 16285,
+    "id": "uhWJ8n_Q-mE",
+    "title": "Cockpit of Concorde - Mach 2.04 turbojet-powered supersonic passenger jet",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Mach"
+  },
+  {
+    "index": 16503,
+    "id": "c53EXpHgBCE",
+    "title": "Fantasy sugarcane field around Sardhana aerially - Green landscape dotted concrete structures",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Sardhana"
+  },
+  {
+    "index": 16602,
+    "id": "DSZ_egVXeuQ",
+    "title": "Sand crabs run amok in backwaters of Talashil Beach- Crab army in hundreds trying to march straight?",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Talashil"
+  },
+  {
+    "index": 16634,
+    "id": "cbDYws0Tjkk",
+    "title": "Three Indians on a Royal Enfield take a royal tumble!",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Enfield"
+  },
+  {
+    "index": 16924,
+    "id": "KsPbH8ATpn8",
+    "title": "The Royal Orient - historical narrative on the luxury Indian Train (Hindi version)",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Orient"
+  },
+  {
+    "index": 16980,
+    "id": "FNBorDKoUGo",
+    "title": "Help Ela get these Puppies adopted - Puppy Rescue Corp to find nice homes!",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Puppies"
+  },
+  {
+    "index": 17242,
+    "id": "jDnti9xP_Zs",
+    "title": "Construction of Scope Twin Tower by Larsen & Toubro",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Twin"
+  },
+  {
+    "index": 17411,
+    "id": "jMkDkem18so",
+    "title": "Kutaja or Wrightia tinctoria or Pala indigo plant- A medicinal plant",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Pala"
+  },
+  {
+    "index": 17459,
+    "id": "7At80yKNJy4",
+    "title": "Rural health care in India: Medical check-up camps organised by Indian fertilizer company",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Medical"
+  },
+  {
+    "index": 17587,
+    "id": "n1wpdSrD9Po",
+    "title": "The great magician, P C Sarkar Jr. stupefies the audience with his Magic",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Magic"
+  },
+  {
+    "index": 18129,
+    "id": "be1eABeWPFs",
+    "title": "Winter visitors to Gangotri valley at Dharali: woman pulls money from purse, priest blesses her",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Gangotri"
+  },
+  {
+    "index": 18318,
+    "id": "qTjXNc2tDJ8",
+    "title": "Small Branded Swift with wings wide open | Short-horned grasshoppers feasting on mustard leaves",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Swift"
+  },
+  {
+    "index": 18351,
+    "id": "Ht_CbfMXqZo",
+    "title": "Panj Kakar put up for sale during Hola Mohalla festival at Anandpur Sahib",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Hola"
+  },
+  {
+    "index": 18401,
+    "id": "K2tHRqcfhm8",
+    "title": "\"Kobe Ami Bahir Holem\" by Rezwana Choudhury Bannya's group Shurer Dhara",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Bahir"
+  },
+  {
+    "index": 18455,
+    "id": "goH9iZzkX8Y",
+    "title": "Free food for the poor: Food distribution Langar outside largest hospital in Asia",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Langar"
+  },
+  {
+    "index": 18803,
+    "id": "uGNs7aaMIog",
+    "title": "Crossing between seracs and crevasses in Khumbu icefall, on Everest",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Khumbu"
+  },
+  {
+    "index": 19918,
+    "id": "RAp9vM7whkQ",
+    "title": "Ear cleaning with a needle: Traditional Ear Cleaner",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Ear"
+  },
+  {
+    "index": 19925,
+    "id": "QR67pifKJ6A",
+    "title": "Romanticism and sheer majesty of the Taj Mahal is unbelievably true",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Taj"
+  },
+  {
+    "index": 20041,
+    "id": "srEBoorHgu8",
+    "title": "Catholic Church during the Marian feast days | Blessed Virgin Mary",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Marian"
+  },
+  {
+    "index": 20336,
+    "id": "jHp5Uvteubc",
+    "title": "Rare archival footage of villagers working under food for work scheme in  Aloor Village, India",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Aloor"
+  },
+  {
+    "index": 20915,
+    "id": "CbSgTxCZwGQ",
+    "title": "Fancy silverware for temple rituals, idols in silver at Soni Jewellers, Sarojini Nagar Market",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Jewellers"
+  },
+  {
+    "index": 21801,
+    "id": "LH2Gpt6uO5s",
+    "title": "Hauz Khas Fort and ruins : gyro stabilized camera tour",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Khas"
+  },
+  {
+    "index": 21819,
+    "id": "HmAZSyZDuYI",
+    "title": "Salvadora persica grows in Bharatpur",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Bharatpur"
+  },
+  {
+    "index": 22266,
+    "id": "gOVukb2-HuQ",
+    "title": "\"Sundar Bote Tabo Angadkhani\" by Rezwana Choudhury Bannya's group Shurer Dhara",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Tabo"
+  },
+  {
+    "index": 22330,
+    "id": "Jd4E-nnF4iQ",
+    "title": "Passenger - Let Her Go (cover) by Remkimi Cherput",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Her"
+  },
+  {
+    "index": 22534,
+    "id": "qfYIZbtKCTc",
+    "title": "Ram Ladoo back in stock at Sarojini Nagar Market | Shoppers enjoy quick snack at fast food stall",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Sarojini"
+  },
+  {
+    "index": 22564,
+    "id": "M6-jKVsQBnw",
+    "title": "Paneer Chilla at Sarojini Nagar Market: another of India's comfort foods made with chickpea flour",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Sarojini"
+  },
+  {
+    "index": 22604,
+    "id": "e-JKjKCmLpo",
+    "title": "Steep paths to Woodstock school make students fit!",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Woodstock"
+  },
+  {
+    "index": 22878,
+    "id": "86AcaS_IU0g",
+    "title": "Birthday celebration during the expedition to Mt. Everest",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Everest"
+  },
+  {
+    "index": 24047,
+    "id": "BXuTjFciVM4",
+    "title": "Ranganathittu Bird Sanctuary : wetland heronry of South India",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Sanctuary"
+  },
+  {
+    "index": 24376,
+    "id": "7oTYgYCabyQ",
+    "title": "Perfectly documented avian brood parasitism in Common Hawk-cuckoo and Long tailed-shrike | India",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Hawkcuckoo"
+  },
+  {
+    "index": 24482,
+    "id": "6lUPgjIYeok",
+    "title": "Rare sight of Green Bee Eater preying on an Apis dorsata Honeybee",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Eater"
+  },
+  {
+    "index": 24489,
+    "id": "hjvBBrxwTis",
+    "title": "Even seen a female Koel? Female Asian Koel feeding behavior in hot weather",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Asian"
+  },
+  {
+    "index": 24499,
+    "id": "xZlBWXzgGi8",
+    "title": "Wire-tailed Swallow or Hirundo smithii, as seen up close",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Hirundo"
+  },
+  {
+    "index": 24577,
+    "id": "3rIDTbSP-bY",
+    "title": "Tota keet? Rose-ringed Parakeet or Psittacula Krameri - Parrot for many Indian children's books",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Krameri"
+  },
+  {
+    "index": 24656,
+    "id": "aFlVvypGh2Q",
+    "title": "Rose-ringed Parakeet (Psittacula krameri) mating on Persian Lilac bakain tree in winter",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Persian"
+  },
+  {
+    "index": 24669,
+    "id": "N1aAI6FZUM0",
+    "title": "Kotwal chiriya or Black Drongo - Dicrurus macrocercus - Noisy black bird gulps down fly on treetop",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Dicrurus"
+  },
+  {
+    "index": 24670,
+    "id": "TmQcvRsd0Ro",
+    "title": "Red-vented Bulbul or Pycnonotus cafer chomps down palm date",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Pycnonotus"
+  },
+  {
+    "index": 28292,
+    "id": "Igpl_0-OnzM",
+    "title": "'Do Lafz Ki Hai' (cover) by Naval Symphonic Band Orchestra",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Naval"
+  },
+  {
+    "index": 28977,
+    "id": "BwxGrbb1DF0",
+    "title": "Kailash Anuj and Piyusha Anuj recite Ramcharitmanas",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Anuj"
+  },
+  {
+    "index": 29083,
+    "id": "kDqU5MAQnfg",
+    "title": "Festival of transvestites in India: mourning for widowhood at Koovagam",
+    "bucket": "gap-2a",
+    "rule": "candidate place token: Koovagam"
+  }
+]

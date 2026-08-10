@@ -1,69 +1,75 @@
-import Image from "next/image";
+import Link from 'next/link';
 
+import { getAllClips, getCoveredPlaces } from '@/lib/archive';
+import { SearchBar } from '@/components/SearchBar';
+
+/**
+ * Landing page: a search bar and the places the archive actually covers.
+ *
+ * Deliberately NOT a personal-memory product. AUDIT.md's kill criteria failed
+ * two of three for the hometown/nostalgia direction — only 115 places clear 20
+ * usable clips, and there are no reliable filming dates — so the framing here
+ * is exploring an archive, present tense, with no claim about the user's own
+ * past and no "see it as it was".
+ */
 export default function Home() {
+  const covered = getCoveredPlaces(20);
+  const clipCount = getAllClips().length;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="px-6 pt-16 pb-24 sm:px-10">
+      <section className="mx-auto w-full max-w-2xl lg:max-w-4xl">
+        <p className="rise text-[11px] tracking-[0.18em] text-muted uppercase">
+          The Wilderness Films archive
+        </p>
+
+        <h1
+          className="rise mt-5 max-w-[16ch] font-display text-[2.6rem] leading-[1.06] font-light tracking-tight text-balance sm:text-6xl"
+          style={{ animationDelay: '60ms' }}
+        >
+          Explore India on film.
+        </h1>
+
+        <p
+          className="rise mt-6 max-w-lg text-[15px] leading-relaxed text-slate sm:text-base"
+          style={{ animationDelay: '120ms' }}
+        >
+          Decades of footage of ordinary India — railway platforms, wet markets, hill roads, the
+          coast. Search it, or start from a place.
+        </p>
+
+        <div className="rise mt-9 max-w-xl" style={{ animationDelay: '180ms' }}>
+          <SearchBar />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+        <p className="rise mt-4 text-[12px] tabular-nums text-muted" style={{ animationDelay: '240ms' }}>
+          {clipCount.toLocaleString()} clips · {covered.length} places · no account needed
+        </p>
+      </section>
+
+      <section className="mx-auto mt-20 w-full max-w-2xl lg:max-w-4xl">
+        <h2 className="text-[11px] tracking-[0.18em] text-muted uppercase">Places we cover well</h2>
+        <p className="mt-3 max-w-lg text-[15px] leading-relaxed text-slate">
+          These are the towns and cities with the deepest coverage in the archive. There are more
+          places than this, but these are the ones with enough footage to be worth browsing.
+        </p>
+
+        <ul className="mt-8 grid grid-cols-1 gap-x-5 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
+          {covered.slice(0, 48).map(({ place, clips }) => (
+            <li key={place.id}>
+              <Link
+                href={`/place/${place.id}`}
+                className="group flex items-baseline justify-between gap-3 border-b border-hairline/60 py-3 transition-colors hover:border-sodium/40"
+              >
+                <span className="font-display text-lg font-light transition-colors group-hover:text-sodium">
+                  {place.name}
+                </span>
+                <span className="shrink-0 text-[11px] tabular-nums text-muted">{clips}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </main>
   );
 }

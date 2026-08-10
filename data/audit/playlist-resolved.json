@@ -1,0 +1,890 @@
+[
+  {
+    "title": "Aerial footage of Indus river valley in Ladakh",
+    "placeId": "ladakh"
+  },
+  {
+    "title": "Aerial footage of Ladakh mountains",
+    "placeId": "ladakh"
+  },
+  {
+    "title": "Aerials of Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Agra",
+    "placeId": "agra"
+  },
+  {
+    "title": "Ahmedabad",
+    "placeId": "ahmedabad"
+  },
+  {
+    "title": "Air pollution in Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Andaman and Nicobar Islands",
+    "placeId": "andaman and nicobar islands"
+  },
+  {
+    "title": "Andhra Pradesh",
+    "placeId": "andhra pradesh"
+  },
+  {
+    "title": "Anthurium Festival, Mizoram",
+    "placeId": "mizoram"
+  },
+  {
+    "title": "Arunachal Pradesh",
+    "placeId": "arunachal pradesh"
+  },
+  {
+    "title": "Assam",
+    "placeId": "assam"
+  },
+  {
+    "title": "Babri Masjid - Ayodhya",
+    "placeId": "ayodhya"
+  },
+  {
+    "title": "Bangalore or Bengaluru",
+    "placeId": "bengaluru"
+  },
+  {
+    "title": "Baolis of Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Benaras or Varanasi",
+    "placeId": "varanasi"
+  },
+  {
+    "title": "Bharmour in Himachal",
+    "placeId": "himachal pradesh"
+  },
+  {
+    "title": "Bihar",
+    "placeId": "bihar"
+  },
+  {
+    "title": "Bihu in Assam",
+    "placeId": "assam"
+  },
+  {
+    "title": "Blind School, Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Bombay Stock Exchange",
+    "placeId": "mumbai"
+  },
+  {
+    "title": "Bombay time lapses",
+    "placeId": "mumbai"
+  },
+  {
+    "title": "Brahmaputra River in Assam",
+    "placeId": "assam"
+  },
+  {
+    "title": "Celebration time in Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Chandigarh",
+    "placeId": "chandigarh"
+  },
+  {
+    "title": "Chapchar Kut - Spring Festival of Mizoram",
+    "placeId": "mizoram"
+  },
+  {
+    "title": "Chennai or Madras",
+    "placeId": "chennai"
+  },
+  {
+    "title": "Chhattisgarh",
+    "placeId": "chhattisgarh"
+  },
+  {
+    "title": "Coimbatore",
+    "placeId": "coimbatore"
+  },
+  {
+    "title": "Cultural festivals in Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Dangerous stuff and rash driving on Delhi roads",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Darjeeling",
+    "placeId": "darjeeling"
+  },
+  {
+    "title": "Dehradun",
+    "placeId": "dehradun"
+  },
+  {
+    "title": "Delhi Aerial Views",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Delhi Diary",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Delhi Elections",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Delhi Flood",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Delhi Metro",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Delhi Police",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Delhi aerial footage",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Delhi at Diwali",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Delhi at Eid",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Delhi city floods over",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Delhi gets flooded",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Delhi malls",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Dev Deepawali in Benarus - Varanasi",
+    "placeId": "varanasi"
+  },
+  {
+    "title": "Dharamshala",
+    "placeId": "dharamshala"
+  },
+  {
+    "title": "Dhol in Manipur and Punjab",
+    "placeId": "punjab"
+  },
+  {
+    "title": "Doon School, Dehradun",
+    "placeId": "dehradun"
+  },
+  {
+    "title": "Dr. Bhau Daji Lad Museum, Mumbai",
+    "placeId": "mumbai"
+  },
+  {
+    "title": "Driving from Aut to Kullu in Himachal Pradesh",
+    "placeId": "kullu"
+  },
+  {
+    "title": "Driving from Baralacha La Pass to Bharatpur in Himachal Pradesh",
+    "placeId": "himachal pradesh"
+  },
+  {
+    "title": "Driving from Bilaspur to Mandi via NH21 in Himachal Pradesh",
+    "placeId": "himachal pradesh"
+  },
+  {
+    "title": "Driving from Chokiyal village to Dras - Kargil",
+    "placeId": "kargil"
+  },
+  {
+    "title": "Driving from Darcha to Baralacha La Pass - Himachal Pradesh",
+    "placeId": "himachal pradesh"
+  },
+  {
+    "title": "Driving from Delhi to Corbett",
+    "placeId": "corbett"
+  },
+  {
+    "title": "Driving from Delhi to Haryana",
+    "placeId": "haryana"
+  },
+  {
+    "title": "Driving from Delhi to Ladakh",
+    "placeId": "ladakh"
+  },
+  {
+    "title": "Driving from Delhi to Murthal",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Driving from Dras to Matayen village in Kargil",
+    "placeId": "kargil"
+  },
+  {
+    "title": "Driving from Garhshanker to Ropar - Punjab",
+    "placeId": "punjab"
+  },
+  {
+    "title": "Driving from Kamand village to Mandi, Himachal Pradesh",
+    "placeId": "himachal pradesh"
+  },
+  {
+    "title": "Driving from Keylong to Darcha in Himachal Pradesh",
+    "placeId": "himachal pradesh"
+  },
+  {
+    "title": "Driving from Kothi village to Rohtang Pass - Himachal Pradesh",
+    "placeId": "himachal pradesh"
+  },
+  {
+    "title": "Driving from Ladakh to Delhi",
+    "placeId": "ladakh"
+  },
+  {
+    "title": "Driving from Lamayuru to Nimmo - Ladakh",
+    "placeId": "ladakh"
+  },
+  {
+    "title": "Driving from Leh to Phyang - Ladakh",
+    "placeId": "leh"
+  },
+  {
+    "title": "Driving from Leh to Srinagar",
+    "placeId": "leh"
+  },
+  {
+    "title": "Driving from Likir Monastery to Lamayuru - Ladakh",
+    "placeId": "ladakh"
+  },
+  {
+    "title": "Driving from Manali to Kothi village in Himachal Pradesh",
+    "placeId": "manali"
+  },
+  {
+    "title": "Driving from Mandi to Aut via NH21 - Himachal Pradesh",
+    "placeId": "himachal pradesh"
+  },
+  {
+    "title": "Driving from Matayen village to Zoji La Pass, Jammu and Kashmir",
+    "placeId": "jammu"
+  },
+  {
+    "title": "Driving from Murthal to Karnal ki Haveli - Haryana",
+    "placeId": "haryana"
+  },
+  {
+    "title": "Driving from National Highway 21 to Bilaspur - Himachal Pradesh",
+    "placeId": "himachal pradesh"
+  },
+  {
+    "title": "Driving from Nimmo to Skara - Leh",
+    "placeId": "leh"
+  },
+  {
+    "title": "Driving from Qazigund town to Jawahar tunnel - Jammu and Kashmir",
+    "placeId": "jammu"
+  },
+  {
+    "title": "Driving from Rohtang Pass to Sissu village - Himachal Pradesh",
+    "placeId": "himachal pradesh"
+  },
+  {
+    "title": "Driving from Rupnagar to Manakpur Kallar Village - Punjab",
+    "placeId": "punjab"
+  },
+  {
+    "title": "Driving from Sissu village to Keylong - Himachal Pradesh",
+    "placeId": "himachal pradesh"
+  },
+  {
+    "title": "Driving from Skara to Likir - Ladakh",
+    "placeId": "ladakh"
+  },
+  {
+    "title": "Driving from Sonamarg to Srinagar - Jammu and Kashmir",
+    "placeId": "srinagar"
+  },
+  {
+    "title": "Driving from Srinagar to Jammu via National highway 1A",
+    "placeId": "srinagar"
+  },
+  {
+    "title": "Driving from Theog to Narkanda , Himachal Pradesh",
+    "placeId": "himachal pradesh"
+  },
+  {
+    "title": "Driving from Upshi to Leh",
+    "placeId": "leh"
+  },
+  {
+    "title": "Driving from Waka village to Kargil - Jammu and Kashmir",
+    "placeId": "kargil"
+  },
+  {
+    "title": "Driving in Haryana",
+    "placeId": "haryana"
+  },
+  {
+    "title": "Driving in Himachal Pradesh - Khanag to Jalori Pass",
+    "placeId": "himachal pradesh"
+  },
+  {
+    "title": "Driving in Jammu and Kashmir",
+    "placeId": "jammu"
+  },
+  {
+    "title": "Driving in Srinagar - Jammu and Kashmir",
+    "placeId": "srinagar"
+  },
+  {
+    "title": "Driving through Uttaranchal",
+    "placeId": "uttarakhand"
+  },
+  {
+    "title": "Dwarka In Gujarat",
+    "placeId": "gujarat"
+  },
+  {
+    "title": "Fashion in Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Floods in Chennai",
+    "placeId": "chennai"
+  },
+  {
+    "title": "Gangtok",
+    "placeId": "gangtok"
+  },
+  {
+    "title": "Gateway of India, Mumbai",
+    "placeId": "mumbai"
+  },
+  {
+    "title": "Gazipur Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Goa",
+    "placeId": "goa"
+  },
+  {
+    "title": "Gujarat",
+    "placeId": "gujarat"
+  },
+  {
+    "title": "Gurgaon and Haryana",
+    "placeId": "gurugram"
+  },
+  {
+    "title": "Gurudwara, Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Hampi",
+    "placeId": "hampi"
+  },
+  {
+    "title": "Himachal Pradesh",
+    "placeId": "himachal pradesh"
+  },
+  {
+    "title": "Himalayan driving from Jalori Pass to Shoja in Himachal Pradesh",
+    "placeId": "himachal pradesh"
+  },
+  {
+    "title": "Hornbill Festival, Nagaland",
+    "placeId": "nagaland"
+  },
+  {
+    "title": "Hyderabad",
+    "placeId": "hyderabad"
+  },
+  {
+    "title": "Indore",
+    "placeId": "indore"
+  },
+  {
+    "title": "Jaipur",
+    "placeId": "jaipur"
+  },
+  {
+    "title": "Jammu and Kashmir, India",
+    "placeId": "jammu"
+  },
+  {
+    "title": "Jawai, Rajasthan",
+    "placeId": "jawai"
+  },
+  {
+    "title": "Jharkhand",
+    "placeId": "jharkhand"
+  },
+  {
+    "title": "K Pop in Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Kanpur",
+    "placeId": "kanpur"
+  },
+  {
+    "title": "Karnataka",
+    "placeId": "karnataka"
+  },
+  {
+    "title": "Kerala",
+    "placeId": "kerala"
+  },
+  {
+    "title": "Kerala Floods",
+    "placeId": "kerala"
+  },
+  {
+    "title": "Khajuraho Dance Festival",
+    "placeId": "khajuraho"
+  },
+  {
+    "title": "Khajuraho temples and town",
+    "placeId": "khajuraho"
+  },
+  {
+    "title": "Kids go to school on bullock cart in Gujarat",
+    "placeId": "gujarat"
+  },
+  {
+    "title": "Kila Raipur",
+    "placeId": "raipur"
+  },
+  {
+    "title": "Kinnaur, Himachal Pradesh",
+    "placeId": "himachal pradesh"
+  },
+  {
+    "title": "Kochi or Cochin",
+    "placeId": "kochi"
+  },
+  {
+    "title": "Kolkata",
+    "placeId": "kolkata"
+  },
+  {
+    "title": "Kolkata or Calcutta",
+    "placeId": "kolkata"
+  },
+  {
+    "title": "Kullu Dussehra",
+    "placeId": "kullu"
+  },
+  {
+    "title": "Kumaon",
+    "placeId": "uttarakhand"
+  },
+  {
+    "title": "Kutch",
+    "placeId": "bhuj"
+  },
+  {
+    "title": "Ladakh",
+    "placeId": "ladakh"
+  },
+  {
+    "title": "Leh",
+    "placeId": "leh"
+  },
+  {
+    "title": "Lion country Gir",
+    "placeId": "gir"
+  },
+  {
+    "title": "Lotus or Bahai Temple in Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Lucknow",
+    "placeId": "lucknow"
+  },
+  {
+    "title": "Madhya Pradesh",
+    "placeId": "madhya pradesh"
+  },
+  {
+    "title": "Madness of Delhi's traffic",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Maha Kumbh Mela Allahabad 2025",
+    "placeId": "allahabad"
+  },
+  {
+    "title": "Maharashtra",
+    "placeId": "maharashtra"
+  },
+  {
+    "title": "Manali",
+    "placeId": "manali"
+  },
+  {
+    "title": "Manimahesh Yatra, Himachal",
+    "placeId": "himachal pradesh"
+  },
+  {
+    "title": "Manipur",
+    "placeId": "manipur"
+  },
+  {
+    "title": "Marine Drive, Mumbai",
+    "placeId": "mumbai"
+  },
+  {
+    "title": "Matheran",
+    "placeId": "matheran"
+  },
+  {
+    "title": "Meadow or buggyals of Garhwal",
+    "placeId": "uttarakhand"
+  },
+  {
+    "title": "Meghalaya",
+    "placeId": "meghalaya"
+  },
+  {
+    "title": "Mehrangarh Fort, Jodhpur",
+    "placeId": "jodhpur"
+  },
+  {
+    "title": "Mizoram",
+    "placeId": "mizoram"
+  },
+  {
+    "title": "Monasteries in Ladakh",
+    "placeId": "ladakh"
+  },
+  {
+    "title": "Mumbai aerials",
+    "placeId": "mumbai"
+  },
+  {
+    "title": "Mumbai or Bombay",
+    "placeId": "mumbai"
+  },
+  {
+    "title": "Mumbai time lapses",
+    "placeId": "mumbai"
+  },
+  {
+    "title": "Mumbai trains",
+    "placeId": "mumbai"
+  },
+  {
+    "title": "Mumbai underworld / mafia / D company",
+    "placeId": "mumbai"
+  },
+  {
+    "title": "Munnar in Kerala",
+    "placeId": "munnar"
+  },
+  {
+    "title": "Music from Nagaland",
+    "placeId": "nagaland"
+  },
+  {
+    "title": "Music from Sikkim",
+    "placeId": "sikkim"
+  },
+  {
+    "title": "Music of the Siddhis of Gujarat",
+    "placeId": "gujarat"
+  },
+  {
+    "title": "Mussoorie and Landour",
+    "placeId": "mussoorie"
+  },
+  {
+    "title": "Mysore / Mysuru",
+    "placeId": "mysuru"
+  },
+  {
+    "title": "NOIDA",
+    "placeId": "noida"
+  },
+  {
+    "title": "Nagaland",
+    "placeId": "nagaland"
+  },
+  {
+    "title": "Nainital",
+    "placeId": "nainital"
+  },
+  {
+    "title": "Nalsarovar wetland in Gujarat",
+    "placeId": "gujarat"
+  },
+  {
+    "title": "Neemrana Fort Palace, Rajasthan",
+    "placeId": "rajasthan"
+  },
+  {
+    "title": "Nilgiris",
+    "placeId": "ooty"
+  },
+  {
+    "title": "OId Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Old Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Old Fort, Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Ooty",
+    "placeId": "ooty"
+  },
+  {
+    "title": "Opera in Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Orissa / Odisha",
+    "placeId": "odisha"
+  },
+  {
+    "title": "Panna Tiger Reserve and National Park",
+    "placeId": "panna"
+  },
+  {
+    "title": "Pika or mouse in Spiti",
+    "placeId": "spiti"
+  },
+  {
+    "title": "Pondicherry",
+    "placeId": "puducherry"
+  },
+  {
+    "title": "Protests for crime against women in Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Pune",
+    "placeId": "pune"
+  },
+  {
+    "title": "Punjab",
+    "placeId": "punjab"
+  },
+  {
+    "title": "Punjab and Punjabis",
+    "placeId": "punjab"
+  },
+  {
+    "title": "Puri",
+    "placeId": "puri"
+  },
+  {
+    "title": "Pushkar Town and Pushkar Mela",
+    "placeId": "pushkar"
+  },
+  {
+    "title": "Rajasthan",
+    "placeId": "rajasthan"
+  },
+  {
+    "title": "Rann Of Kutch - Desert School",
+    "placeId": "bhuj"
+  },
+  {
+    "title": "Ranthambore National Park, Rajasthan",
+    "placeId": "ranthambore"
+  },
+  {
+    "title": "Rao Jodha Park, Jodhpur",
+    "placeId": "jodhpur"
+  },
+  {
+    "title": "Rishikesh International Yoga Festival",
+    "placeId": "rishikesh"
+  },
+  {
+    "title": "Root bridges of Cherrapunjee",
+    "placeId": "sohra"
+  },
+  {
+    "title": "Rural Olympics in Punjab",
+    "placeId": "punjab"
+  },
+  {
+    "title": "Salt pans of Rann of Kutch, Sambhar Lake, Gopalpur",
+    "placeId": "bhuj"
+  },
+  {
+    "title": "Sangai Festival, Imphal",
+    "placeId": "imphal"
+  },
+  {
+    "title": "Select City Walk mall in Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Shillong Chamber Choir",
+    "placeId": "shillong"
+  },
+  {
+    "title": "Shimla",
+    "placeId": "shimla"
+  },
+  {
+    "title": "Sikkim",
+    "placeId": "sikkim"
+  },
+  {
+    "title": "Siliguri",
+    "placeId": "siliguri"
+  },
+  {
+    "title": "Slow motion Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Sonepur Mela, Bihar",
+    "placeId": "bihar"
+  },
+  {
+    "title": "Spice market of Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Spiti Kalachakra",
+    "placeId": "spiti"
+  },
+  {
+    "title": "Spiti, Himachal Pradesh",
+    "placeId": "spiti"
+  },
+  {
+    "title": "St. Paul's School, Darjeeling",
+    "placeId": "darjeeling"
+  },
+  {
+    "title": "Sunderbans / Sundarbans",
+    "placeId": "sundarbans"
+  },
+  {
+    "title": "Tamil Nadu",
+    "placeId": "tamil nadu"
+  },
+  {
+    "title": "Tati of Nagaland",
+    "placeId": "nagaland"
+  },
+  {
+    "title": "Textile in Gujarat",
+    "placeId": "gujarat"
+  },
+  {
+    "title": "Thalfavang Kut, Mizoram",
+    "placeId": "mizoram"
+  },
+  {
+    "title": "Thar Desert, Rajasthan",
+    "placeId": "rajasthan"
+  },
+  {
+    "title": "The Capital City Minstrels Choir, New Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Time lapses of Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Tripura",
+    "placeId": "tripura"
+  },
+  {
+    "title": "Udaipur",
+    "placeId": "udaipur"
+  },
+  {
+    "title": "Urs at Ajmer Sharif Dargah",
+    "placeId": "ajmer"
+  },
+  {
+    "title": "Uttar Pradesh",
+    "placeId": "uttar pradesh"
+  },
+  {
+    "title": "Uttarakhand",
+    "placeId": "uttarakhand"
+  },
+  {
+    "title": "Uttarakhand Floods",
+    "placeId": "uttarakhand"
+  },
+  {
+    "title": "Varanasi",
+    "placeId": "varanasi"
+  },
+  {
+    "title": "Varanasi Hand Loom",
+    "placeId": "varanasi"
+  },
+  {
+    "title": "Varanasi Prayag Ghat",
+    "placeId": "varanasi"
+  },
+  {
+    "title": "Varanasi Saree",
+    "placeId": "varanasi"
+  },
+  {
+    "title": "Varanasi Silk",
+    "placeId": "varanasi"
+  },
+  {
+    "title": "Varanasi or Benarus",
+    "placeId": "varanasi"
+  },
+  {
+    "title": "Vegetable and fruit wholesale market around India and in Azadpur, Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Weaving in Varanasi",
+    "placeId": "varanasi"
+  },
+  {
+    "title": "West Bengal",
+    "placeId": "west bengal"
+  },
+  {
+    "title": "Wrestling in Delhi",
+    "placeId": "delhi"
+  },
+  {
+    "title": "Ziro Music Fest",
+    "placeId": "ziro"
+  },
+  {
+    "title": "celebration delhi",
+    "placeId": "delhi"
+  }
+]

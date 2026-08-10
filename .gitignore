@@ -39,3 +39,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated journeys (fs JourneyStore adapter)
+/data/journeys
+
+# Archive data: the raw crawl cache and everything derived from it.
+# Regenerate with `npm run ingest:playlists` then `npm run ingest -- --offline`.
+# Too large for git (cache ~400MB, index ~63MB) and reproducible from source.
+/data/.ingest-cache.jsonl
+/data/.ingest-state.json
+/data/index.json
+/data/unmatched.json

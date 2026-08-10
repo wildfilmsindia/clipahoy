@@ -1,0 +1,109 @@
+/**
+ * Core domain types for Clipahoy.
+ *
+ * The controlled vocabularies below are deliberately closed. Nothing outside
+ * SUBJECTS may ever be written into a Clip: the loader rejects unknown tags at
+ * boot rather than serving an archive whose vocabulary has quietly drifted.
+ */
+
+export const SUBJECTS = [
+  'railway',
+  'bazaar',
+  'river',
+  'school',
+  'temple',
+  'monsoon',
+  'farmland',
+  'street food',
+  'bus',
+  'coastline',
+  'hills',
+  'festival',
+  'wildlife',
+  'old town',
+  'highway',
+] as const;
+
+export type Subject = (typeof SUBJECTS)[number];
+
+export const REGIONS = [
+  'North',
+  'Northeast',
+  'East',
+  'West',
+  'South',
+  'Central',
+] as const;
+
+export type Region = (typeof REGIONS)[number];
+
+export const TERRAINS = [
+  'dry plains',
+  'hills',
+  'coastal',
+  'delta',
+  'river valley',
+  'desert',
+  'plateau',
+] as const;
+
+export type Terrain = (typeof TERRAINS)[number];
+
+export type Clip = {
+  /**
+   * "SEED_0001" while we are running on seed data, a real YouTube ID once
+   * scripts/ingest.ts has produced data/index.json. Never hand-write an
+   * eleven-character ID — see isPlaceholder.
+   */
+  id: string;
+  title: string;
+  /**
+   * The prose zone of the YouTube description — the paragraph a human wrote
+   * about this specific clip, with the hashtag block and the SEO keyword tail
+   * stripped. This is what free-text search runs against; searching the raw
+   * description would match everything, because the tail name-drops the whole
+   * vocabulary on every video. Averages ~450 characters.
+   */
+  text: string;
+  /**
+   * null when no location could be identified.
+   *
+   * Roughly a third of the corpus (AUDIT.md §D) names no place at all — much
+   * of it wildlife and nature footage that is legitimately unplaceable rather
+   * than an extraction failure. Those clips are still indexed and searchable so
+   * long as they carry a subject tag; a search for "leopard" should not come
+   * back empty because nobody wrote down which forest it was.
+   */
+  placeId: string | null;
+  subjects: Subject[];
+  year: number | null;
+  /**
+   * True when `id` is not a real YouTube ID. The UI must render a labelled
+   * grey tile rather than an embed, so a placeholder can never masquerade as
+   * missing footage.
+   */
+  isPlaceholder: boolean;
+};
+
+export type Place = {
+  id: string;
+  name: string;
+  district: string;
+  state: string;
+  region: Region;
+  terrain: Terrain;
+  lat: number;
+  lng: number;
+  /** subject -> clip count in this place. Derived by the loader, never authored. */
+  coverage: Partial<Record<Subject, number>>;
+};
+
+/** The shape actually stored on disk. `coverage` is computed by the loader. */
+export type RawPlace = Omit<Place, 'coverage'>;
+
+export type ArchiveFile = {
+  /** "seed" or the ISO date of the ingest run that produced this file. */
+  source: string;
+  places: RawPlace[];
+  clips: Clip[];
+};

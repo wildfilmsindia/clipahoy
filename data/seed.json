@@ -1,0 +1,137 @@
+{
+  "source": "seed",
+  "_note": "Hand-written placeholder data. Every clip id is of the form SEED_nnnn and isPlaceholder is true. No real YouTube IDs appear in this file. Replaced by data/index.json once scripts/ingest.ts has run. Places are deliberately structured so all match levels are reachable: jhansi+babina share a district, gorakhpur shares the state, shillong+sohra pair up, and bikaner is the only desert place so it exercises the final 'archive' rung.",
+  "places": [
+    {
+      "id": "jhansi",
+      "name": "Jhansi",
+      "district": "Jhansi",
+      "state": "Uttar Pradesh",
+      "region": "North",
+      "terrain": "dry plains",
+      "lat": 25.4484,
+      "lng": 78.5685
+    },
+    {
+      "id": "babina",
+      "name": "Babina",
+      "district": "Jhansi",
+      "state": "Uttar Pradesh",
+      "region": "North",
+      "terrain": "dry plains",
+      "lat": 25.2436,
+      "lng": 78.4735
+    },
+    {
+      "id": "gorakhpur",
+      "name": "Gorakhpur",
+      "district": "Gorakhpur",
+      "state": "Uttar Pradesh",
+      "region": "North",
+      "terrain": "dry plains",
+      "lat": 26.7606,
+      "lng": 83.3732
+    },
+    {
+      "id": "shillong",
+      "name": "Shillong",
+      "district": "East Khasi Hills",
+      "state": "Meghalaya",
+      "region": "Northeast",
+      "terrain": "hills",
+      "lat": 25.5788,
+      "lng": 91.8933
+    },
+    {
+      "id": "sohra",
+      "name": "Sohra",
+      "district": "East Khasi Hills",
+      "state": "Meghalaya",
+      "region": "Northeast",
+      "terrain": "hills",
+      "lat": 25.2702,
+      "lng": 91.7323
+    },
+    {
+      "id": "alappuzha",
+      "name": "Alappuzha",
+      "district": "Alappuzha",
+      "state": "Kerala",
+      "region": "South",
+      "terrain": "delta",
+      "lat": 9.4981,
+      "lng": 76.3388
+    },
+    {
+      "id": "mangaluru",
+      "name": "Mangaluru",
+      "district": "Dakshina Kannada",
+      "state": "Karnataka",
+      "region": "South",
+      "terrain": "coastal",
+      "lat": 12.9141,
+      "lng": 74.856
+    },
+    {
+      "id": "bikaner",
+      "name": "Bikaner",
+      "district": "Bikaner",
+      "state": "Rajasthan",
+      "region": "West",
+      "terrain": "desert",
+      "lat": 28.0229,
+      "lng": 73.3119
+    }
+  ],
+  "clips": [
+    { "id": "SEED_0001", "title": "Steam locomotive shunting in the yard at Jhansi junction", "placeId": "jhansi", "subjects": ["railway"], "year": 1988, "isPlaceholder": true },
+    { "id": "SEED_0002", "title": "Porters waiting on platform four as the night mail pulls in, Jhansi", "placeId": "jhansi", "subjects": ["railway"], "year": 1994, "isPlaceholder": true },
+    { "id": "SEED_0003", "title": "Morning vegetable market at Sipri Bazaar, Jhansi", "placeId": "jhansi", "subjects": ["bazaar", "street food"], "year": 1996, "isPlaceholder": true },
+    { "id": "SEED_0004", "title": "Narrow lanes of the old town after rain, Jhansi", "placeId": "jhansi", "subjects": ["old town", "monsoon"], "year": null, "isPlaceholder": true },
+    { "id": "SEED_0005", "title": "Wheat fields on the Bundelkhand plain outside Jhansi", "placeId": "jhansi", "subjects": ["farmland"], "year": 1991, "isPlaceholder": true },
+    { "id": "SEED_0006", "title": "Trucks on the Jhansi to Kanpur highway at dusk", "placeId": "jhansi", "subjects": ["highway"], "year": 2003, "isPlaceholder": true },
+
+    { "id": "SEED_0007", "title": "Goods train crossing the level gate at Babina", "placeId": "babina", "subjects": ["railway"], "year": 1992, "isPlaceholder": true },
+    { "id": "SEED_0008", "title": "Weekly cattle market on the outskirts of Babina", "placeId": "babina", "subjects": ["bazaar", "farmland"], "year": null, "isPlaceholder": true },
+    { "id": "SEED_0009", "title": "Peacocks in a ploughed field near Babina", "placeId": "babina", "subjects": ["wildlife", "farmland"], "year": 1999, "isPlaceholder": true },
+    { "id": "SEED_0010", "title": "Bus stand in the early morning, Babina", "placeId": "babina", "subjects": ["bus"], "year": 2001, "isPlaceholder": true },
+
+    { "id": "SEED_0011", "title": "Shunting yard and carriage sheds, Gorakhpur", "placeId": "gorakhpur", "subjects": ["railway"], "year": 1990, "isPlaceholder": true },
+    { "id": "SEED_0012", "title": "Sweet shops and tea stalls near the station, Gorakhpur", "placeId": "gorakhpur", "subjects": ["street food", "bazaar"], "year": 1997, "isPlaceholder": true },
+    { "id": "SEED_0013", "title": "Flooded fields along the Rapti after heavy rain, Gorakhpur", "placeId": "gorakhpur", "subjects": ["monsoon", "river", "farmland"], "year": 1998, "isPlaceholder": true },
+    { "id": "SEED_0014", "title": "Cycle rickshaws in the old quarter, Gorakhpur", "placeId": "gorakhpur", "subjects": ["old town"], "year": null, "isPlaceholder": true },
+    { "id": "SEED_0015", "title": "Evening prayers at a riverside shrine, Gorakhpur", "placeId": "gorakhpur", "subjects": ["temple", "river"], "year": 2005, "isPlaceholder": true },
+
+    { "id": "SEED_0016", "title": "Rain falling on tin roofs, Shillong", "placeId": "shillong", "subjects": ["monsoon"], "year": 1993, "isPlaceholder": true },
+    { "id": "SEED_0017", "title": "Iewduh market on a wet morning, Shillong", "placeId": "shillong", "subjects": ["bazaar", "monsoon"], "year": 1995, "isPlaceholder": true },
+    { "id": "SEED_0018", "title": "Pine slopes above the town, Shillong", "placeId": "shillong", "subjects": ["hills"], "year": null, "isPlaceholder": true },
+    { "id": "SEED_0019", "title": "Schoolchildren under umbrellas on the walk home, Shillong", "placeId": "shillong", "subjects": ["school", "monsoon"], "year": 2002, "isPlaceholder": true },
+    { "id": "SEED_0020", "title": "Roadside stalls at Police Bazar in the evening, Shillong", "placeId": "shillong", "subjects": ["street food", "bazaar"], "year": 2008, "isPlaceholder": true },
+    { "id": "SEED_0021", "title": "Drumming at a harvest festival in a Khasi village near Shillong", "placeId": "shillong", "subjects": ["festival"], "year": 1997, "isPlaceholder": true },
+
+    { "id": "SEED_0022", "title": "Cloud moving through the valley at Sohra", "placeId": "sohra", "subjects": ["hills", "monsoon"], "year": 1994, "isPlaceholder": true },
+    { "id": "SEED_0023", "title": "Waterfalls in full flow after monsoon rain, Sohra", "placeId": "sohra", "subjects": ["monsoon", "river"], "year": 1994, "isPlaceholder": true },
+    { "id": "SEED_0024", "title": "Living root bridge over a stream below Sohra", "placeId": "sohra", "subjects": ["hills", "river"], "year": 2006, "isPlaceholder": true },
+    { "id": "SEED_0025", "title": "Bus climbing the Shillong to Sohra road in mist", "placeId": "sohra", "subjects": ["bus", "hills"], "year": null, "isPlaceholder": true },
+
+    { "id": "SEED_0026", "title": "Country boats on the backwater canals, Alappuzha", "placeId": "alappuzha", "subjects": ["river"], "year": 1989, "isPlaceholder": true },
+    { "id": "SEED_0027", "title": "Paddy fields below sea level in Kuttanad, Alappuzha", "placeId": "alappuzha", "subjects": ["farmland"], "year": 1996, "isPlaceholder": true },
+    { "id": "SEED_0028", "title": "Snake boat crew rowing in practice, Alappuzha", "placeId": "alappuzha", "subjects": ["festival", "river"], "year": 2000, "isPlaceholder": true },
+    { "id": "SEED_0029", "title": "Fishermen hauling nets on the beach, Alappuzha", "placeId": "alappuzha", "subjects": ["coastline"], "year": null, "isPlaceholder": true },
+    { "id": "SEED_0030", "title": "Monsoon breaking over the coast, Alappuzha", "placeId": "alappuzha", "subjects": ["monsoon", "coastline"], "year": 1998, "isPlaceholder": true },
+    { "id": "SEED_0031", "title": "Tea stalls along the canal road, Alappuzha", "placeId": "alappuzha", "subjects": ["street food"], "year": 2004, "isPlaceholder": true },
+
+    { "id": "SEED_0032", "title": "Fishing boats returning to Bunder harbour, Mangaluru", "placeId": "mangaluru", "subjects": ["coastline"], "year": 1992, "isPlaceholder": true },
+    { "id": "SEED_0033", "title": "Rain on the tiled roofs of the old town, Mangaluru", "placeId": "mangaluru", "subjects": ["monsoon", "old town"], "year": 1995, "isPlaceholder": true },
+    { "id": "SEED_0034", "title": "Morning fish market at Bunder, Mangaluru", "placeId": "mangaluru", "subjects": ["bazaar", "street food"], "year": null, "isPlaceholder": true },
+    { "id": "SEED_0035", "title": "Temple car drawn through the street at first light, Mangaluru", "placeId": "mangaluru", "subjects": ["festival", "temple"], "year": 2001, "isPlaceholder": true },
+    { "id": "SEED_0036", "title": "Buses on the coastal highway north of Mangaluru", "placeId": "mangaluru", "subjects": ["bus", "highway", "coastline"], "year": 2007, "isPlaceholder": true },
+
+    { "id": "SEED_0037", "title": "Camel carts on the road into Bikaner", "placeId": "bikaner", "subjects": ["highway"], "year": 1987, "isPlaceholder": true },
+    { "id": "SEED_0038", "title": "Spice and grain sellers in the old walled city, Bikaner", "placeId": "bikaner", "subjects": ["bazaar", "old town"], "year": 1994, "isPlaceholder": true },
+    { "id": "SEED_0039", "title": "Metre gauge train crossing open desert near Bikaner", "placeId": "bikaner", "subjects": ["railway"], "year": 1990, "isPlaceholder": true },
+    { "id": "SEED_0040", "title": "Kachori and sweet stalls at Kote Gate, Bikaner", "placeId": "bikaner", "subjects": ["street food", "bazaar"], "year": 2003, "isPlaceholder": true },
+    { "id": "SEED_0041", "title": "Desert fox at dawn in scrub outside Bikaner", "placeId": "bikaner", "subjects": ["wildlife"], "year": 2009, "isPlaceholder": true },
+    { "id": "SEED_0042", "title": "Livestock trading at the fair ground, Bikaner", "placeId": "bikaner", "subjects": ["festival", "farmland"], "year": null, "isPlaceholder": true }
+  ]
+}

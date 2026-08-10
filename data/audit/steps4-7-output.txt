@@ -1,0 +1,200 @@
+=============== STEP 4: FULL-CORPUS LOCATION ANALYSIS ===============
+total rows in raw cache:        126524
+unique YouTube video IDs:       88159
+duplicate rows removed:         38365  (detected by videoId; a video appears in
+                                 multiple playlists and in the uploads feed)
+matched clips in index:         53821
+no place:                       33818
+no subject:                     19615
+rejected (not place footage):   520
+
+--- granularity of identified location (of matched clips) ---
+city/town level:  26425  (30.0% of unique corpus)
+state/UT level:   27396  (31.1% of unique corpus)
+district-only:    0  — the gazetteer has no district-only rows; every entry
+                     resolves to either a settlement or a state.
+country-only:     0  — "India" alone is never emitted as a place.
+no location:      33818  (38.4%)
+
+--- USABLE CLIPS (city/town location + >=1 subject tag) ---
+usable clips:                   17652  (20.0% of unique corpus)
+unique places with >=1 usable:  150
+places with   5+ usable clips:   140
+places with  20+ usable clips:   115
+places with  50+ usable clips:   83
+places with 100+ usable clips:   58
+places with 500+ usable clips:   6
+
+top-100 places written to data/audit/top-100-places.csv
+
+--- TOP 25 PLACES BY USABLE CLIPS ---
+  1.   882  Mussoorie (Uttarakhand)  [hills, wildlife, highway]
+  2.   773  Mumbai (Maharashtra)  [festival, coastline, highway]
+  3.   580  Allahabad (Uttar Pradesh)  [festival, river, temple]
+  4.   546  Kolkata (West Bengal)  [river, festival, highway]
+  5.   538  Puri (Odisha)  [temple, festival, river]
+  6.   500  Jammu (Jammu and Kashmir)  [hills, river, highway]
+  7.   450  Jabbarkhet (Uttarakhand)  [hills, wildlife, monsoon]
+  8.   403  Jaipur (Rajasthan)  [festival, wildlife, old town]
+  9.   395  Bengaluru (Karnataka)  [highway, river, temple]
+ 10.   373  Varanasi (Uttar Pradesh)  [river, festival, temple]
+ 11.   367  Raipur (Chhattisgarh)  [festival, railway, farmland]
+ 12.   366  Pushkar (Rajasthan)  [festival, river, temple]
+ 13.   330  Khajuraho (Madhya Pradesh)  [festival, temple, old town]
+ 14.   302  Kaziranga (Assam)  [wildlife, highway, monsoon]
+ 15.   294  Leh (Ladakh)  [hills, river, highway]
+ 16.   292  Amarnath (Jammu and Kashmir)  [temple, festival, hills]
+ 17.   289  Aizawl (Mizoram)  [hills, festival, river]
+ 18.   288  Darjeeling (West Bengal)  [hills, railway, river]
+ 19.   281  Surajkund (Haryana)  [festival, old town, bazaar]
+ 20.   279  Spiti (Himachal Pradesh)  [hills, wildlife, river]
+ 21.   247  Meerut (Uttar Pradesh)  [highway, river, bus]
+ 22.   243  Haridwar (Uttarakhand)  [festival, river, highway]
+ 23.   229  Manali (Himachal Pradesh)  [hills, river, highway]
+ 24.   229  Agra (Uttar Pradesh)  [river, old town, temple]
+ 25.   220  Landour (Uttarakhand)  [hills, wildlife, monsoon]
+
+=============== STEP 6: TEMPORAL COVERAGE ===============
+confirmed filming date (explicit metadata field): 0  (0.0%)
+  -> NO SUCH FIELD EXISTS. YouTube's playlistItems.snippet provides
+     publishedAt (upload date) only. There is no filming-date field
+     anywhere in the raw cache.
+inferred filming period (year token in title or prose): 15470  (28.7% of matched clips)
+upload date only: 38351  (71.3%)
+
+inferred-year distribution by decade (NOT confirmed filming dates):
+  1930s: 548
+  1940s: 509
+  1950s: 827
+  1960s: 533
+  1970s: 782
+  1980s: 851
+  1990s: 1609
+  2000s: 2699
+  2010s: 5753
+  2020s: 1359
+
+=============== STEP 7: LICENSING / SEARCHABILITY ===============
+
+--- "Kolkata tram" : 48 candidates ---
+  1. Vintage trams and yellow ambassador taxis define Kolkata's unique spirit
+  2. Howrah Bridge 1980's archive of boats and river life for local Kolkata wallahs: Pushing maal ga
+  3. Giant old era metal Howrah Bridge in Kolkata: Archival footage of rickety old diesel buses cros
+  4. Kolkata tour by tram in 1989: Traversing streets of Calcutta on rickety tram, through grilled w
+  5. Kolkata Tram Tour in days of yore - circa 1989 in Gariahat, Calcutta
+  6. Das Gupta book sellers In Kolkata - an age-old Calcutta institution visited in this video in 19
+  7. Presidency College Kolkata circa 1989  - if you are a Calcutta campus alumnus, search for yours
+  8. Howrah Bridge with trams and black-and-yellow Ambassador taxis on it, in Kolkata circa 1985-199
+  9. RBI employees agitate and protest outside Kolkata's old buildings, in 1980's archival Calcutta 
+  10. Travelling in Kolkata Trams of yore: Bengali crowd rides with discipline in this archival foota
+
+--- "Mumbai monsoon" : 146 candidates ---
+  1. Godhra Junction Railway Station and Godhra City, Gujarat
+  2. Churchgate railway station in Mumbai in the 1990's: rare archival footage of Bombay of yore
+  3. Neha Dhupia Abhay Deol interview on Mumbai locals , Ek Chalis ki Last Local
+  4. Neha Dhupia talks about her iconic role in Ek Chalis Ki Last Local (2007)
+  5. Mumbai Salsa Session | Couples Training Together In Studio
+  6. Sanjay Khanduri: I wanted to show the real Bombay in film Ek Chalis Ki Last Local
+  7. Shaan: Film is important not star cast because the film represent the story only The Bong Conne
+  8. Ganesh Chaturthi as a Mumbai monsoon time religious ritual of cultural significance, from 1990'
+  9. Kunal Khemu distributes raincoat to a children in a street of Mumbai
+  10. Chhatrapati Shivaji Terminus Central Railway Mumbai 2005
+
+--- "Delhi railway station" : 800 candidates ---
+  1. Student protesters climb bus as massive Cockroach Janta Party rally gathers at Jantar Mantar
+  2. IndianOil petrol pump and Indian flag vendors in Delhi
+  3. Indian flag rally and roadside vendors in Delhi traffic
+  4. National Service Scheme contingent and Beating Retreat band at Republic Day rehearsal
+  5. Lodhi Colony Railway Station and electrified railway tracks in New Delhi
+  6. Lodhi Colony Railway Station and freight train in New Delhi, India
+  7. Community food distribution near Safdarjung Hospital in New Delhi, India
+  8. Installation work on a pedestrian footbridge in South Extension, New Delhi
+  9. PWD workers drain waterlogged road under a flyover in New Delhi after monsoon rain
+  10. Delhi Metro train above rainy city traffic in Delhi
+
+--- "Rajasthan village" : 536 candidates ---
+  1. Migratory Demoiselle Cranes gather en masse in Rajasthan, India
+  2. Demoiselle Cranes feed in large numbers in Khichan, Rajasthan
+  3. Migratory cranes feed in Rajasthan, India
+  4. Thousands of Demoiselle Cranes at Khichan feeding grounds, Rajasthan
+  5. Massive flocks of migratory Demoiselle Cranes settle and feed in Rajasthan, India
+  6. Thousands of migratory Demoiselle Cranes settle in Khichan, Rajasthan
+  7. Thousands of Demoiselle Cranes Gather at Khichan Bird Feeding Sanctuary in Rajasthan
+  8. Demoiselle Cranes feeding at Pakshi Chugga Ghar in Khichan, Rajasthan
+  9. Thousands of Demoiselle Cranes gather at Pakshi Chugga Ghar, Khichan
+  10. Large congregation of Demoiselle Cranes in Rajasthan
+
+--- "Indian street market" : 3230 candidates ---
+  1. Artisan tea and handicraft stalls at Dastkar Nature Bazaar in New Delhi
+  2. Colourful Turkish mosaic lamps on display at Surajkund Mela
+  3. Dastkar Festival of Lights 2022 at Nature Bazaar | Khadi India & Handicrafts | New Delhi
+  4. How cold pressed peanut oil is made
+  5. How cold pressed oils are extracted using a wooden oil expeller
+  6. Flying over Landour Cantonment | An aerial view of Mussoorie's historic hill station
+  7. Crowded shopping at Sarojini Nagar Market in New Delhi
+  8. Essentia Extracts organic wellness products at Nature Bazaar, New Delhi
+  9. Eco-friendly handcrafted goods on display at the Landour Mela
+  10. Fresh pakoras served at Khandani Pakode Wala in New Delhi
+
+--- "Kerala backwaters" : 202 candidates ---
+  1. Snake boat race support boats and Kerala backwaters during Vallam Kali
+  2. Kerala snake boat race preparations and rowing on scenic backwaters
+  3. Kerala snake boat race officials monitor start on backwaters
+  4. Snake Boat Race rowers gather before the competition begins in Punnamada Lake
+  5. Traditional Boat racing on the Backwaters of Kerala
+  6. Festival atmosphere during Kerala's famous Snake Boat Race on Punnamada Lake, Alappuzha
+  7. Houseboats cruise through the Kerala Backwaters under monsoon skies
+  8. From Alappuzha beach to the Kerala Backwaters during the Monsoon, Kerala, India
+  9. Traditional snake boats race across Punnamada Lake during Kerala's Nehru trophy boat race
+  10. Traditional snake boat teams compete in Kerala's historic Vallam Kali
+
+--- "Himalayan landscape" : 7401 candidates ---
+  1. Maun Mela fishing festival and traffic near twin bridges in Uttarakhand
+  2. Akchamal Village blooms with apricot blossoms in Kargil, Ladakh
+  3. Nubra Valley and snow-capped Himalayan mountains in Ladakh
+  4. Maund Mela river community fishing tradition of plunder in the Uttarakhand Himalaya
+  5. Monsoon clouds over Darma Valley in the Kumaon Himalaya, Uttarakhand
+  6. Drive Through Lamayuru Moonland on the Srinagar–Leh Highway, Ladakh
+  7. Nubra Valley's Braided River and Himalayan Landscape in Ladakh
+  8. Nubra Valley, Shyok River and snow-capped mountains in Ladakh
+  9. Flood-damaged Nalota Nala Bridge on the Dehradun-Mussoorie road, Uttarakhand
+  10. Snow-capped Himalayan peaks rise above drifting clouds in Pithoragarh, Uttarakhand
+
+--- "Indian wedding" : 508 candidates ---
+  1. Gurjar family wedding ceremony with bride and groom
+  2. Garhwali groom welcome ceremony in Agoda village, Uttarkashi
+  3. Sweet packing and gift box preparation at Evergreen Sweet House, New Delhi
+  4. Traditional Garhwali folk dance celebration in Agoda village, Uttarkashi
+  5. Busy flower market at Sri Krishna Rajendra market in Bengaluru
+  6. Traditional wedding celebrations in Agoda village, Uttarkashi
+  7. Flower garlands for sale at a Delhi flower market
+  8. Flower trade and garland making at Andheria Mor Phool Mandi, Delhi
+  9. Chhatarpur Phool Mandi, Delhi | India's vibrant wholesale flower market
+  10. Grand Indian wedding reception in Chhattarpur | Elegant décor & beverage counter
+
+=============== STEP 5: METADATA SHAPE SAMPLE (seed=43) ===============
+description length: min 791, median 2011, max 4780
+empty descriptions: 0/100
+have hashtag block: 27/100
+have playlist title: 84/100
+ALL CAPS titles: 0/100
+titles with a pipe delimiter: 7/100
+titles with a colon: 18/100
+non-Latin (Devanagari etc) titles: 0/100
+
+sample of 15 titles:
+  - Dense forest canopy in Uttarakhand | Lush green woodland landscape
+  - Woman harvests mustard crop on terrace farms in rural India
+  - Roadside garbage accumulation near Sarojini Nagar in New Delhi
+  - Inside Chambal Valley: A Local Speaks on the Changing Face of Dacoity
+  - SG 406 The Man talks about the rule of river rafting in Gangotri   MPCL DISC 2 FOOTAGE
+  - Karma Shri Nalanda Institute Gangtok, Sikkim: old footage
+  - Black-headed Jay Perched on a Leafless Tree | Jabberkhet Mussoorie Wildlife
+  - Inside a wood manufacturing unit in Faridabad skilled workers process timber with heavy machinery
+  - Majestic Mysore Palace in Karnataka: Royal heritage surrounded by lush gardens and green grounds
+  - Mahakumbh Prayagraj Thousands of Devotees Cover Heads with Plastic Bags
+  - Aerial View of Mawiong and ISBT | Mawlai, Shillong, Meghalaya
+  - An aerial view of Jatoli village, a rural settlement in the Himalayan state of Uttarakhand
+  - Kashmiri policeman monitors a polling booth during voting in Kashmir : Archival footage from 1990's
+  - Village tales: Exploring Rajasthan's charming galis
+  - Bride's family and friends ask for a reward for bringing the bride to Groom's Residence, in Manipur
