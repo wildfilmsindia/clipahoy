@@ -22,6 +22,35 @@ export const SUBJECTS = [
   'wildlife',
   'old town',
   'highway',
+
+  /*
+   * Second-generation tags, added after AUDIT.md §J found 31.8% of clips
+   * carried none of the original 15. Chosen from term frequency across the
+   * untagged population itself, not guessed: dance (1,043 clips), village
+   * (804), music (671), aerial (581), fort (434), ceremony (455), flowers
+   * (404). Still a closed vocabulary, still rule-based — no LLM pass, per the
+   * audit's recommendation that one has to earn its place against free-text
+   * search over 2,000-character descriptions, and does not.
+   */
+  'dance',
+  'music',
+  'ceremony',
+  'village',
+  'flowers',
+  'forest',
+  'fort',
+  'aerial',
+  'crafts',
+  'industry',
+  'sport',
+  'politics',
+  'snow',
+  'birds',
+  'livestock',
+  'architecture',
+  'boats',
+  'desert',
+  'lake',
 ] as const;
 
 export type Subject = (typeof SUBJECTS)[number];
