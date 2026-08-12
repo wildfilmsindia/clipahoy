@@ -1,62 +1,96 @@
 import Link from 'next/link';
 
-import { getPlace } from '@/lib/archive';
-import { describeClip, describeLocation } from '@/lib/describe';
-import { search } from '@/lib/search';
-import { ClipGrid, type ClipCard } from '@/components/ClipGrid';
-import { SearchBar } from '@/components/SearchBar';
+import { searchPage } from '@/lib/search';
+import { toCards } from '@/lib/cards';
+import { ClipGrid } from '@/components/ClipGrid';
+import { EmptyState } from '@/components/EmptyState';
+import { Pager } from '@/components/Pager';
 
-export const metadata = { title: 'Search — Clipahoy' };
+const PAGE_SIZE = 24;
 
-export default async function SearchPage({
+export async function generateMetadata({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
-  const { q = '' } = await searchParams;
-  const query = q.trim().slice(0, 120);
-  const hits = query ? search(query, 60) : [];
+  const { q } = await searchParams;
+  return { title: q ? `${q}` : 'Search' };
+}
 
-  // Compose each result into one sentence rather than surfacing raw fields.
-  const cards: ClipCard[] = hits.map(({ clip }) => {
-    // placeId is null for unplaceable footage (wildlife, nature); those clips
-    // render on their title alone, with no location line.
-    const place = clip.placeId ? getPlace(clip.placeId) : undefined;
-    const sentence = describeClip(clip, place);
-    return { clip, sentence, location: describeLocation(clip, place, sentence) };
-  });
+export default async function SearchPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
+  const sp = await searchParams;
+  const query = (sp.q ?? '').trim().slice(0, 120);
+  const page = Math.max(1, Number(sp.page) || 1);
+
+  const { hits, total } = query
+    ? searchPage(query, (page - 1) * PAGE_SIZE, PAGE_SIZE)
+    : { hits: [], total: 0 };
+
+  const cards = toCards(hits.map((h) => h.clip));
+  const lastPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <main className="px-6 pt-8 pb-24 sm:px-10">
-      <header className="mx-auto w-full max-w-2xl lg:max-w-4xl">
-        <Link href="/" className="text-[11px] tracking-[0.18em] text-muted uppercase hover:text-paper">
-          Clipahoy
-        </Link>
-        <div className="mt-6 max-w-xl">
-          <SearchBar initial={query} />
-        </div>
+    <main className="mx-auto w-full max-w-[1400px] px-5 pt-10 pb-16 sm:px-8 sm:pt-14">
+      <header className="border-b border-line-soft pb-6">
+        <p className="eyebrow">Search</p>
+        <h1 className="mt-2.5 font-display text-[28px] leading-tight font-light sm:text-[36px]">
+          {query ? <>&ldquo;{query}&rdquo;</> : 'Search the archive'}
+        </h1>
 
-        {query && (
-          <p className="mt-5 text-[13px] text-slate">
-            {cards.length === 0
-              ? `Nothing in the archive matches “${query}”.`
-              : `${cards.length}${cards.length === 60 ? '+' : ''} ${
-                  cards.length === 1 ? 'clip' : 'clips'
-                } for “${query}”`}
+        {query && total > 0 && (
+          <p className="mt-3 text-[14px] text-mute">
+            {total.toLocaleString()} {total === 1 ? 'clip' : 'clips'}
+            {lastPage > 1 && (
+              <span className="text-faint">
+                {' '}
+                · page {page} of {lastPage}
+              </span>
+            )}
           </p>
         )}
       </header>
 
-      <div className="mx-auto mt-10 w-full max-w-2xl lg:max-w-4xl">
-        {query && cards.length === 0 ? (
-          <p className="max-w-md text-[15px] leading-relaxed text-muted">
-            Try a plainer word — the archive responds better to what is on screen (rain, market,
-            bridge, temple) than to a title or a proper name.
-          </p>
-        ) : (
-          <ClipGrid cards={cards} />
-        )}
-      </div>
+      {!query ? (
+        <EmptyState
+          title="Nothing searched yet"
+          body="Type a word into the field above — the archive responds best to what is on screen: rain, market, bridge, temple, a town name."
+        />
+      ) : total === 0 ? (
+        <EmptyState
+          title={`Nothing matches “${query}”`}
+          body="Try a plainer word. The archive is described in terms of what the camera saw, so “rain” finds more than a film title or a proper name would."
+          suggestions={['monsoon', 'railway', 'bazaar', 'coast', 'festival']}
+        />
+      ) : (
+        <>
+          <div className="mt-10">
+            <ClipGrid cards={cards} />
+          </div>
+          <Pager
+            page={page}
+            lastPage={lastPage}
+            href={(p) => `/search?q=${encodeURIComponent(query)}&page=${p}`}
+          />
+        </>
+      )}
+
+      {query && total > 0 && (
+        <p className="mt-14 border-t border-line-soft pt-6 text-[13px] text-faint">
+          Looking to license footage?{' '}
+          <Link
+            href="https://www.wildfilmsindia.com/contact"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-mute underline decoration-line underline-offset-4 transition-colors hover:text-paper hover:decoration-accent"
+          >
+            Contact Wilderness Films
+          </Link>
+        </p>
+      )}
     </main>
   );
 }

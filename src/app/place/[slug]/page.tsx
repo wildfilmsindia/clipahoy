@@ -3,83 +3,84 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { getCoveredPlaces, getPlace } from '@/lib/archive';
-import { describeClip, describeLocation } from '@/lib/describe';
 import { clipsForPlace } from '@/lib/search';
-import { ClipGrid, type ClipCard } from '@/components/ClipGrid';
-import { SearchBar } from '@/components/SearchBar';
+import { toCards } from '@/lib/cards';
+import { ClipGrid } from '@/components/ClipGrid';
+import { Pager } from '@/components/Pager';
 
-type Props = { params: Promise<{ slug: string }> };
+const PAGE_SIZE = 24;
+
+type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ page?: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const place = getPlace(decodeURIComponent(slug));
-  if (!place) return { title: 'Clipahoy' };
+  if (!place) return { title: 'Place not found' };
   return {
-    title: `${place.name} — Clipahoy`,
-    description: `Archive footage of ${place.name}, ${place.state}, from the Wilderness Films archive.`,
+    title: place.name,
+    description: `Archive footage of ${place.name}, ${place.country !== 'India' ? place.country : place.state}.`,
   };
 }
 
-export default async function PlacePage({ params }: Props) {
+export default async function PlacePage({ params, searchParams }: Props) {
   const { slug } = await params;
   const place = getPlace(decodeURIComponent(slug));
   if (!place) notFound();
 
-  const { clips, total } = clipsForPlace(place.id, 60);
+  const page = Math.max(1, Number((await searchParams).page) || 1);
+  const { clips, total } = clipsForPlace(place.id, Number.MAX_SAFE_INTEGER);
+  const pageClips = clips.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const cards = toCards(pageClips);
+  const lastPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  const cards: ClipCard[] = clips.map((clip) => {
-    const sentence = describeClip(clip, place);
-    return { clip, sentence, location: describeLocation(clip, place, sentence) };
-  });
-
-  // A few other well-covered places, so a dead end always offers a way on.
+  const region = place.country !== 'India' ? place.country : place.state;
   const others = getCoveredPlaces(20)
     .filter((c) => c.place.id !== place.id)
-    .slice(0, 8);
+    .slice(0, 12);
 
   return (
-    <main className="px-6 pt-8 pb-24 sm:px-10">
-      <header className="mx-auto w-full max-w-2xl lg:max-w-4xl">
-        <Link href="/" className="text-[11px] tracking-[0.18em] text-muted uppercase hover:text-paper">
-          Clipahoy
-        </Link>
-
-        <h1 className="mt-6 font-display text-[2.2rem] leading-[1.08] font-light sm:text-5xl">
+    <main className="mx-auto w-full max-w-[1400px] px-5 pt-10 pb-16 sm:px-8 sm:pt-14">
+      <header className="border-b border-line-soft pb-6">
+        <nav aria-label="Breadcrumb" className="mb-3">
+          <Link href="/places" className="text-[13px] text-faint transition-colors hover:text-mute">
+            Places
+          </Link>
+        </nav>
+        <h1 className="font-display text-[28px] leading-tight font-light sm:text-[36px]">
           {place.name}
         </h1>
-        <p className="mt-2 font-display text-[15px] font-light text-slate italic">
-          {place.district === place.name ? place.state : `${place.district}, ${place.state}`}
-          <span className="text-muted not-italic">
+        <p className="mt-3 text-[14px] text-mute">
+          {place.district !== place.name ? `${place.district}, ${region}` : region}
+          <span className="text-faint">
             {' · '}
-            {total.toLocaleString()} clips
-            {total > clips.length && ` · showing ${clips.length}`}
+            {total.toLocaleString()} {total === 1 ? 'clip' : 'clips'}
+            {lastPage > 1 && ` · page ${page} of ${lastPage}`}
           </span>
         </p>
-
-        <div className="mt-8 max-w-xl">
-          <SearchBar />
-        </div>
       </header>
 
-      <div className="mx-auto mt-12 w-full max-w-2xl lg:max-w-4xl">
+      <div className="mt-10">
         <ClipGrid cards={cards} />
       </div>
 
-      <footer className="mx-auto mt-20 w-full max-w-2xl border-t border-hairline pt-10 lg:max-w-4xl">
-        <h2 className="text-[11px] tracking-[0.18em] text-muted uppercase">Elsewhere in the archive</h2>
-        <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
+      <Pager
+        page={page}
+        lastPage={lastPage}
+        href={(p) => `/place/${place.id}?page=${p}`}
+      />
+
+      <section className="mt-16 border-t border-line-soft pt-8">
+        <p className="eyebrow">Elsewhere in the archive</p>
+        <ul className="mt-4 flex flex-wrap gap-2">
           {others.map(({ place: p }) => (
             <li key={p.id}>
-              <Link
-                href={`/place/${p.id}`}
-                className="font-display text-lg font-light text-slate underline-offset-4 transition-colors hover:text-paper hover:underline"
-              >
+              <Link href={`/place/${p.id}`} className="chip">
                 {p.name}
               </Link>
             </li>
           ))}
         </ul>
-      </footer>
+      </section>
     </main>
   );
 }

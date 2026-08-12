@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { getAllClips, getPlace } from './archive';
-import type { Clip } from './types';
+import { SUBJECTS, type Clip, type Subject } from './types';
 
 /**
  * Full-text search over clip title + description prose, ranked by BM25.
@@ -136,6 +136,68 @@ export function search(query: string, limit = 60): Hit[] {
 /** How many clips a query can reach, for showing an honest total. */
 export function countMatches(query: string): number {
   return search(query, Number.MAX_SAFE_INTEGER).length;
+}
+
+/**
+ * Paged search, so results are not silently truncated at a fixed cap.
+ * Returns the true total alongside the page.
+ */
+export function searchPage(
+  query: string,
+  offset = 0,
+  limit = 24,
+): { hits: Hit[]; total: number } {
+  const all = search(query, Number.MAX_SAFE_INTEGER);
+  return { hits: all.slice(offset, offset + limit), total: all.length };
+}
+
+/**
+ * Clips carrying a subject tag, newest-looking first.
+ *
+ * The 34-tag vocabulary was previously invisible in the UI even though every
+ * clip is tagged with it — this is what makes browse-by-subject possible.
+ */
+export function clipsForSubject(
+  subject: Subject,
+  offset = 0,
+  limit = 24,
+): { clips: Clip[]; total: number } {
+  const all = getAllClips().filter((c) => c.subjects.includes(subject));
+  return { clips: all.slice(offset, offset + limit), total: all.length };
+}
+
+/** Clip counts per subject, for the browse grid. Computed once. */
+let subjectCounts: { subject: Subject; count: number }[] | null = null;
+
+export function getSubjectCounts(): { subject: Subject; count: number }[] {
+  if (subjectCounts) return subjectCounts;
+
+  const tally = new Map<Subject, number>();
+  for (const clip of getAllClips()) {
+    for (const s of clip.subjects) tally.set(s, (tally.get(s) ?? 0) + 1);
+  }
+
+  subjectCounts = SUBJECTS.map((subject) => ({
+    subject,
+    count: tally.get(subject) ?? 0,
+  }))
+    .filter((s) => s.count > 0)
+    .sort((a, b) => b.count - a.count);
+
+  return subjectCounts;
+}
+
+/**
+ * Other clips from the same place, for the detail page. Excludes the clip
+ * itself so a viewer never sees what they are already watching.
+ */
+export function relatedClips(clip: Clip, limit = 6): Clip[] {
+  const pool = clip.placeId
+    ? getAllClips().filter((c) => c.placeId === clip.placeId && c.id !== clip.id)
+    : getAllClips().filter(
+        (c) => c.id !== clip.id && c.subjects.some((s) => clip.subjects.includes(s)),
+      );
+  return pool.slice(0, limit);
 }
 
 /**
