@@ -466,6 +466,21 @@ function scan(text: string, kind: QuestionKind, out: Signals): boolean {
   const leftover = words.filter((w, i) => !consumed[i] && w.length > 2 && !STOP.has(w));
   if (leftover.length) out.terms.push(leftover.join(' '));
 
+  /*
+   * Short answers are also searched whole.
+   *
+   * Matching splits a phrase across tables — "Dal Lake" gives `lake` to the
+   * subject tag and leaves `dal` to be searched alone, which retrieved
+   * lentils and the Janata Dal party. "Hornbill Festival" left `hornbill`,
+   * which retrieved the bird. Searching the intact phrase fixes both, because
+   * search.ts requires every token of a one- or two-term query to be present,
+   * so only clips containing the actual phrase survive.
+   *
+   * Capped at three words: beyond that the majority rule makes a whole-phrase
+   * query too strict to match anything.
+   */
+  if (words.length >= 2 && words.length <= 3) out.terms.push(words.join(' '));
+
   return matchedAnything;
 }
 

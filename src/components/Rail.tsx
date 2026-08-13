@@ -34,6 +34,26 @@ export function Rail({
 
   const gutter = flush ? '' : 'mx-auto w-full max-w-[1600px] px-5 sm:px-8';
 
+  /*
+   * Too few cards to scroll? Lay them out as a grid instead.
+   *
+   * The rail reserves a fixed width per card, so a two-card row left most of
+   * the track empty and read as truncated rather than as a short list — the
+   * personalised feed hits this whenever a section has thin matches.
+   */
+  const sparse = cards.length < 4;
+
+  /*
+   * Columns match the card count, so two cards fill the row instead of
+   * occupying two slots of four and leaving it looking half-loaded.
+   */
+  const sparseCols =
+    cards.length === 1
+      ? 'grid-cols-1 sm:grid-cols-2'
+      : cards.length === 2
+        ? 'grid-cols-2'
+        : 'grid-cols-2 sm:grid-cols-3';
+
   return (
     <section className="py-10 sm:py-14">
       <div className={gutter}>
@@ -41,11 +61,23 @@ export function Rail({
       </div>
 
       <div className="mt-7 overflow-hidden">
-        <ul className={`rail ${flush ? '' : 'mx-auto max-w-[1600px] px-5 sm:px-8'}`}>
+        <ul
+          className={
+            sparse
+              ? `grid gap-x-5 gap-y-9 ${sparseCols} ${
+                  flush ? '' : 'mx-auto max-w-[1600px] px-5 sm:px-8'
+                }`
+              : `rail ${flush ? '' : 'mx-auto max-w-[1600px] px-5 sm:px-8'}`
+          }
+        >
           {cards.map((data, i) => (
             <li
               key={data.clip.id}
-              className="rise w-[74vw] sm:w-[46vw] lg:w-[30vw] xl:w-[22vw] 2xl:w-[19vw]"
+              className={
+                sparse
+                  ? 'rise'
+                  : 'rise w-[74vw] sm:w-[46vw] lg:w-[30vw] xl:w-[22vw] 2xl:w-[19vw]'
+              }
               style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}
             >
               <VideoCard data={data} size="compact" eager={i < 4} index={i} />

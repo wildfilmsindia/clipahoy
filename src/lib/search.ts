@@ -217,3 +217,36 @@ export function clipsForPlace(placeId: string, limit = 60): { clips: Clip[]; tot
 
   return { clips: all.slice(0, limit), total: all.length };
 }
+
+/**
+ * How specific a phrase is, as a multiplier for relevance boosting elsewhere.
+ *
+ * Reads the same document frequencies BM25 already builds; it does not affect
+ * matching. Exists because a personalised feed blends several signals, and
+ * without it every typed word counted the same: "Hornbill Festival" reduced to
+ * the `festival` tag plus the word "festival", which appears in ~12,000 clips,
+ * so a generic Kolkata festival outranked the actual Nagaland one.
+ *
+ * The RAREST token carries the phrase. "ganesh chaturthi" is as specific as
+ * "chaturthi", not as vague as its commoner half.
+ *
+ * Bounds are deliberate: even a very common word keeps some pull (0.35), and
+ * a hapax cannot run away with the ranking (1.6).
+ */
+const IDF_REFERENCE = 4.5; // a moderately specific term, ~500 documents
+
+export function termRarity(phrase: string): number {
+  const { docs, df } = getIndex();
+  const N = docs.length;
+  const tokens = tokenise(phrase);
+  if (tokens.length === 0) return 1;
+
+  let rarest = 0;
+  for (const token of tokens) {
+    const n = df.get(token) ?? 0;
+    const idf = Math.log(1 + (N - n + 0.5) / (n + 0.5));
+    if (idf > rarest) rarest = idf;
+  }
+
+  return Math.min(1.6, Math.max(0.35, rarest / IDF_REFERENCE));
+}

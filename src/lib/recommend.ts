@@ -1,7 +1,7 @@
 import 'server-only';
 
-import { getAllClips, getPlace, isIndian } from './archive';
-import { search } from './search';
+import { getAllClips, getClipsForPlace, getPlace, isIndian } from './archive';
+import { search, termRarity } from './search';
 import { interpret, isEmpty, type Signals } from './interpret';
 import type { Answers } from './taste';
 import type { Clip, Subject } from './types';
@@ -38,23 +38,105 @@ const W = {
   region: 2,
   terrain: 3,
   subject: 4,
-  /** Scaled by normalised BM25 rank, so one weak term cannot dominate. */
+  /** Scaled by BM25 rank AND term rarity, so a common word cannot dominate. */
   text: 9,
 } as const;
 
 /** Subjects that read as memory rather than as news. */
 const NOSTALGIC: Subject[] = ['old town', 'railway', 'bazaar', 'architecture', 'fort', 'bus'];
 
+/**
+ * Per-clip relevance boost for the free-text signals, scaled by how specific
+ * each term is.
+ *
+ * Without the rarity scale every typed word competed equally, so a word the
+ * archive uses 12,000 times ("festival") drowned the rare one the person
+ * actually named ("hornbill"). Rarity is the general fix: it applies to any
+ * specific term outside the closed vocabulary, rather than needing every
+ * festival, temple and market name added by hand.
+ */
+/**
+ * Personal names that collide with places and monuments people type.
+ *
+ * Handled the way the gazetteer collisions were (AUDIT.md: "Kailash" matching
+ * the singer Kailash Kher, "Hong Kong" matching a stuntman's biography): a
+ * narrow, named exclusion rather than a rule that might drop good footage.
+ *
+ * `term` only matches the BARE ambiguous word. Someone who types "Meenakshi
+ * Temple" or "Mount Kailash" has already disambiguated and is left alone; it
+ * is the one-word form that needs help. `personal` matches only the full
+ * personal-name form, so the exclusion is tiny — 3 clips for Seshadri, 25 for
+ * Kailash Kher, out of 53 and 168 mentions respectively.
+ */
+const NAME_COLLISIONS: { term: RegExp; personal: RegExp }[] = [
+  /*
+   * Typing "Meenakshi" returned Meenakshi Seshadri dancing at the Pune
+   * Festival above the temple itself.
+   *
+   * Held to the actress (both spellings in the corpus) on purpose. The bare
+   * word is mostly people here — Lekhi 29, Seshadri/Sheshadri 10, temple 3 —
+   * and excluding Lekhi too shrank the pool below the personalisation
+   * threshold, so the whole feed fell back to generic. A worse answer than a
+   * slightly noisy one.
+   */
+  { term: /^meenakshi$/i, personal: /meenakshi\s+sh?eshadri/i },
+  // "Kailash" is the mountain and the pilgrimage; Kailash Kher is a singer.
+  { term: /^kailash$/i, personal: /kailash\s+(?:kher|ji\b)/i },
+];
+
 function textBoosts(terms: string[]): Map<string, number> {
   const boosts = new Map<string, number>();
   for (const term of terms) {
-    const hits = search(term, 120);
+    const rarity = termRarity(term);
+    const collision = NAME_COLLISIONS.find((c) => c.term.test(term.trim()));
+    const hits = search(term, 120).filter(
+      (h) => !collision?.personal.test(`${h.clip.title} ${h.clip.text ?? ''}`),
+    );
     hits.forEach((hit, i) => {
-      const value = 1 - i / hits.length;
-      boosts.set(hit.clip.id, Math.max(boosts.get(hit.clip.id) ?? 0, value));
+      const value = (1 - i / hits.length) * rarity;
+      /*
+       * Accumulated, not maxed. Taking only a clip's best term meant matching
+       * "hornbill" and "hornbill festival" scored exactly the same as matching
+       * one of them, so a clip about a hornbill bird tied with the actual
+       * Hornbill Festival. Satisfying more of what someone typed should count
+       * for more.
+       */
+      boosts.set(hit.clip.id, (boosts.get(hit.clip.id) ?? 0) + value);
     });
   }
+
+  // Capped so a clip repeating one idea across several terms cannot run away
+  // with the ranking; it can be worth about two strong matches, not five.
+  for (const [id, value] of boosts) boosts.set(id, Math.min(value, 2));
   return boosts;
+}
+
+/**
+ * How specific naming a place is, on the same principle as term rarity.
+ *
+ * Flat place weighting treated "Delhi" (13,886 clips) and "Konark" (18) as
+ * equally informative, so pairing a small place with a large one buried the
+ * small one entirely — Delhi + Konark returned Delhi traffic and no Konark.
+ * Naming somewhere the archive barely covers is a much stronger statement of
+ * intent than naming its biggest city.
+ *
+ * Cached: this walks the clip list per place, and the answer never changes
+ * within a process.
+ */
+const PLACE_REFERENCE = 3.6; // ~2,000 clips, a mid-sized city
+const placeWeights = new Map<string, number>();
+
+function placeWeight(placeId: string): number {
+  const cached = placeWeights.get(placeId);
+  if (cached !== undefined) return cached;
+
+  const total = getAllClips().length;
+  const count = getClipsForPlace(placeId).length;
+  const idf = Math.log(1 + total / Math.max(count, 1));
+  const weight = Math.min(1.6, Math.max(0.6, idf / PLACE_REFERENCE));
+
+  placeWeights.set(placeId, weight);
+  return weight;
 }
 
 type Scored = { clip: Clip; score: number; matchedPlace: boolean };
@@ -71,7 +153,7 @@ function scoreAll(signals: Signals): Scored[] {
       const place = getPlace(clip.placeId);
       if (place) {
         if (signals.places.has(place.id)) {
-          score += W.place;
+          score += W.place * placeWeight(place.id);
           matchedPlace = true;
         } else if (signals.states.has(place.state)) {
           score += W.state;
