@@ -25,7 +25,9 @@ export function Footer({ clips, places }: { clips: number; places: number }) {
                 {[
                   { href: '/subjects', label: 'Subjects' },
                   { href: '/places', label: 'Places' },
-                  { href: '/search?q=monsoon', label: 'Monsoon' },
+                  /* A bare "Monsoon" sat here beside two section names and read
+                     as a third section rather than as a saved search. */
+                  { href: '/search', label: 'Search' },
                 ].map((l) => (
                   <li key={l.href}>
                     <Link

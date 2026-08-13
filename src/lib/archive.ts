@@ -173,5 +173,23 @@ export function getCoveredPlaces(minUsable = 20): { place: Place; clips: number 
     .sort((a, b) => b.clips - a.clips);
 }
 
+/**
+ * True for footage shot in India, and for footage with no place at all
+ * (wildlife and nature clips, which are legitimately unplaceable).
+ *
+ * The archive holds real footage shot abroad and we keep it — but it must not
+ * *lead*. Unordered, the Railway subject page opened with an Amsterdam metro
+ * and a Helsinki commuter train, which misreads the collection at a glance.
+ */
+export function isIndian(placeId: string | null): boolean {
+  if (placeId === null) return true;
+  return getPlace(placeId)?.country === 'India';
+}
 
-
+/** Stable India-first ordering; relative order within each group is kept. */
+export function indiaFirst<T extends { placeId: string | null }>(clips: T[]): T[] {
+  const home: T[] = [];
+  const away: T[] = [];
+  for (const c of clips) (isIndian(c.placeId) ? home : away).push(c);
+  return home.concat(away);
+}

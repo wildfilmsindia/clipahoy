@@ -205,3 +205,25 @@ export function describeLocation(clip: Clip, place?: Place, sentence?: string): 
   if (named) return place.name === place.state ? null : place.state;
   return place.name === place.state ? place.state : `${place.name}, ${place.state}`;
 }
+
+/**
+ * The rights-holder boilerplate appended to most descriptions.
+ *
+ * Every clip's prose ends with the same paragraph about the size of the
+ * Wilderness Films collection and the formats it was shot on. It is true, and
+ * it is identical across 73k records, so as card copy it is pure noise — the
+ * hover blurb was opening with "This footage is part of the broadcast stock
+ * footage archive of…" instead of saying anything about the clip.
+ */
+const BOILERPLATE = /\s*(?:This (?:footage|video) is part of|The collection comprises)\b[\s\S]*$/i;
+
+/** Description prose with the shared marketing tail removed. Null if nothing is left. */
+export function blurb(text: string, limit = 240): string | null {
+  const trimmed = text.replace(BOILERPLATE, '').trim();
+  if (trimmed.length < 40) return null;
+  if (trimmed.length <= limit) return trimmed;
+  // Cut on a sentence end where possible so the blurb does not stop mid-clause.
+  const cut = trimmed.slice(0, limit);
+  const stop = cut.lastIndexOf('. ');
+  return (stop > 90 ? cut.slice(0, stop + 1) : cut.trimEnd() + '…');
+}

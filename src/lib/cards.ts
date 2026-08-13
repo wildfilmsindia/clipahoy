@@ -1,9 +1,9 @@
 import 'server-only';
 
 import { getPlace } from './archive';
-import { describeClip, describeLocation } from './describe';
+import { blurb, describeClip, describeLocation } from './describe';
 import type { Clip } from './types';
-import type { ClipCard } from '@/components/ClipGrid';
+import type { CardData } from '@/components/VideoCard';
 
 /**
  * Compose clips into renderable cards.
@@ -13,10 +13,15 @@ import type { ClipCard } from '@/components/ClipGrid';
  * placeId is null for legitimately unplaceable footage (wildlife, nature);
  * those render on their title alone with no location line.
  */
-export function toCards(clips: Clip[]): ClipCard[] {
+export function toCards(clips: Clip[]): CardData[] {
   return clips.map((clip) => {
     const place = clip.placeId ? getPlace(clip.placeId) : undefined;
     const sentence = describeClip(clip, place);
-    return { clip, sentence, location: describeLocation(clip, place, sentence) };
+    return {
+      clip,
+      sentence,
+      location: describeLocation(clip, place, sentence),
+      blurb: blurb(clip.text),
+    };
   });
 }

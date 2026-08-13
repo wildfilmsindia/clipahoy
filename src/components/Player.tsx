@@ -9,7 +9,7 @@ import { Thumbnail } from './Thumbnail';
  *
  * Still a facade first: the iframe mounts only on click, so arriving at a clip
  * page costs one image rather than a full YouTube player. Matches the rule
- * ClipGrid enforces for result lists.
+ * browsing grids enforce: cards never mount a player, they link here.
  */
 export function Player({
   clipId,

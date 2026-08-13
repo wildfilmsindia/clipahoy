@@ -1,42 +1,46 @@
 @import "tailwindcss";
 
 /**
- * Design tokens.
+ * Design system.
  *
- * Black ground, yellow used once per view, dark green as the quieter second
- * accent. The archive's footage is saturated, so the interface stays almost
- * monochrome and lets thumbnails carry the colour.
- *
- * Radii are deliberately small (2-4px). Large corner radii read as generic
- * SaaS; this is an editorial archive.
+ * Near-black ground with a dark-green undertone, yellow reserved for actions
+ * and active states, deep green for depth and secondary interaction. The
+ * footage is saturated, so chrome stays restrained — but never flat: every
+ * major surface sits on layered gradients plus a grain overlay so the page
+ * reads as cinematic rather than as an empty black box.
  */
 @theme {
-  /* Ground */
-  --color-ink: #0a0a0b;
-  --color-surface: #111214;
-  --color-surface-2: #17191c;
-  --color-line: #24262b;
-  --color-line-soft: #1a1c20;
+  /* Ground — green-tinted blacks, not neutral */
+  --color-ink: #070907;
+  --color-ink-2: #0b0f0c;
+  --color-surface: #0f1411;
+  --color-surface-2: #141a16;
+  --color-surface-3: #1a221d;
+  --color-line: #212a24;
+  --color-line-soft: #171e1a;
 
   /* Type */
-  --color-paper: #f2f0ea;
-  --color-mute: #9a9ea6;
-  --color-faint: #6a6e76;
+  --color-paper: #f4f2ec;
+  --color-mute: #a2a8a3;
+  --color-faint: #6d746f;
 
   /* Accents */
-  --color-accent: #f4c430;
-  --color-accent-deep: #d9a91c;
-  --color-forest: #1d3b31;
-  --color-forest-bright: #3f8a6e;
+  --color-accent: #f5c518;
+  --color-accent-deep: #d9ab0d;
+  --color-accent-soft: #fbe38a;
+  --color-forest: #122a1f;
+  --color-forest-2: #1a3d2c;
+  --color-forest-bright: #2f7d58;
 
   --font-display: var(--font-newsreader), ui-serif, Georgia, serif;
   --font-sans: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
 
   --radius-xs: 2px;
   --radius-sm: 4px;
-  --radius-md: 6px;
+  --radius-md: 8px;
 
   --ease-out-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.3, 0.64, 1);
 }
 
 @layer base {
@@ -44,17 +48,23 @@
     background: var(--color-ink);
     color-scheme: dark;
     -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
   }
 
+  /*
+   * No background here on purpose. html paints the ink base; if body paints it
+   * too, body's opaque background covers every negative-z-index layer — which
+   * silently hid the entire Backdrop and made the whole site render flat black
+   * no matter how strong the gradients were.
+   */
   body {
-    background: var(--color-ink);
     color: var(--color-paper);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    overflow-x: hidden;
   }
 
-  /* One visible focus treatment everywhere, on the accent. */
   :focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
@@ -66,27 +76,47 @@
     color: var(--color-ink);
   }
 
-  /* Thin, unobtrusive scrollbar so long result lists don't gain a bright rail. */
   * {
     scrollbar-width: thin;
     scrollbar-color: var(--color-line) transparent;
   }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-line);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-forest-bright);
+  }
 }
 
 @layer components {
-  /* ---------------------------------------------------------------- surfaces */
+  /* ------------------------------------------------------------- surfaces */
 
-  /**
-   * The standard raised panel. A hairline plus a very slight top-light
-   * gradient gives depth without a drop shadow, which reads cleaner on black.
-   */
   .panel {
-    background: linear-gradient(180deg, var(--color-surface-2) 0%, var(--color-surface) 100%);
+    background: linear-gradient(160deg, var(--color-surface-2) 0%, var(--color-surface) 100%);
     border: 1px solid var(--color-line);
     border-radius: var(--radius-sm);
   }
 
-  /* ---------------------------------------------------------------- buttons */
+  /** Translucent surface for anything that floats over content. */
+  /*
+   * 72% ink over a 14px blur was not enough: scrolling a grid of bright
+   * thumbnails under the sticky header left tile captions readable straight
+   * through the logo and nav. Near-opaque is the only setting where the nav
+   * reliably wins over arbitrary footage.
+   */
+  .glass {
+    background: color-mix(in srgb, var(--color-ink) 97%, transparent);
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    border: 1px solid color-mix(in srgb, var(--color-paper) 8%, transparent);
+  }
+
+  /* -------------------------------------------------------------- buttons */
 
   .btn {
     display: inline-flex;
@@ -97,89 +127,234 @@
     font-size: 0.9375rem;
     font-weight: 500;
     line-height: 1;
-    padding: 0.75rem 1.25rem;
+    padding: 0.8125rem 1.375rem;
     border: 1px solid transparent;
     cursor: pointer;
+    white-space: nowrap;
     transition:
-      background-color 0.16s var(--ease-out-soft),
-      border-color 0.16s var(--ease-out-soft),
-      color 0.16s var(--ease-out-soft),
-      transform 0.16s var(--ease-out-soft);
+      background-color 0.18s var(--ease-out-soft),
+      border-color 0.18s var(--ease-out-soft),
+      color 0.18s var(--ease-out-soft),
+      box-shadow 0.18s var(--ease-out-soft),
+      transform 0.12s var(--ease-out-soft);
   }
   .btn:active {
-    transform: translateY(1px);
+    transform: translateY(1px) scale(0.99);
   }
 
   .btn-primary {
     background: var(--color-accent);
-    color: var(--color-ink);
+    color: #14100a;
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 45%, transparent);
   }
   .btn-primary:hover {
     background: var(--color-accent-deep);
+    box-shadow: 0 6px 26px -8px color-mix(in srgb, var(--color-accent) 65%, transparent);
   }
 
   .btn-ghost {
-    background: transparent;
+    background: color-mix(in srgb, var(--color-surface-2) 70%, transparent);
     border-color: var(--color-line);
     color: var(--color-paper);
   }
   .btn-ghost:hover {
-    background: var(--color-surface-2);
-    border-color: var(--color-faint);
+    background: var(--color-surface-3);
+    border-color: var(--color-forest-bright);
   }
 
-  /* ------------------------------------------------------------------ chips */
+  /* ---------------------------------------------------------------- chips */
 
   .chip {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
-    min-height: 36px;
+    min-height: 34px;
     border: 1px solid var(--color-line);
-    border-radius: var(--radius-xs);
-    background: var(--color-surface);
+    border-radius: 99px;
+    background: color-mix(in srgb, var(--color-surface-2) 80%, transparent);
     color: var(--color-mute);
     font-size: 0.8125rem;
     line-height: 1;
-    padding: 0.5rem 0.75rem;
+    padding: 0.5rem 0.875rem;
     white-space: nowrap;
     transition:
-      color 0.16s var(--ease-out-soft),
-      border-color 0.16s var(--ease-out-soft),
-      background-color 0.16s var(--ease-out-soft);
+      color 0.18s var(--ease-out-soft),
+      border-color 0.18s var(--ease-out-soft),
+      background-color 0.18s var(--ease-out-soft),
+      transform 0.18s var(--ease-out-soft);
   }
   .chip:hover {
     color: var(--color-paper);
-    border-color: var(--color-faint);
+    border-color: var(--color-forest-bright);
+    background: var(--color-forest);
+    transform: translateY(-1px);
   }
   .chip[data-active='true'] {
-    background: var(--color-forest);
-    border-color: var(--color-forest-bright);
-    color: var(--color-paper);
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: #14100a;
   }
 
-  /* ------------------------------------------------------------------ label */
+  /* -------------------------------------------------- onboarding field */
+
+  /**
+   * The primary interaction of the whole onboarding.
+   *
+   * Deliberately not a boxed form control: a wide underline that lights up in
+   * accent on focus, so typing feels like writing a line rather than filling
+   * in a field.
+   */
+  .taste-field {
+    width: 100%;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--color-line);
+    border-radius: 0;
+    color: var(--color-paper);
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 300;
+    line-height: 1.3;
+    padding: 0.75rem 0.25rem;
+    outline: none;
+    transition:
+      border-color 0.25s var(--ease-out-soft),
+      box-shadow 0.25s var(--ease-out-soft);
+  }
+  @media (min-width: 640px) {
+    .taste-field {
+      font-size: 2rem;
+    }
+  }
+  /* Placeholder is lighter AND italic: at a glance nobody should mistake the
+     example for something they typed. */
+  .taste-field::placeholder {
+    color: var(--color-faint);
+    opacity: 0.5;
+    font-style: italic;
+  }
+  /* Focus thickens the rule and warms it. Obvious at a glance without the
+     jolt of a full ring around a control that has no box. */
+  .taste-field:focus {
+    border-bottom-color: var(--color-accent);
+    box-shadow:
+      0 1px 0 0 var(--color-accent),
+      0 14px 34px -26px color-mix(in srgb, var(--color-accent) 90%, transparent);
+  }
+  /* The field already shows focus on its underline; the global ring would
+     draw a second box around a control that has no box. */
+  .taste-field:focus-visible {
+    outline: none;
+  }
+
+  /**
+   * Example hint under the onboarding field.
+   *
+   * Deliberately quieter than .chip — these are prompts for what you could
+   * type, not answers to pick. Sized for a thumb: plain text hints measured
+   * ~20px tall, under the 24px WCAG 2.5.8 minimum.
+   */
+  .ghost-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    border: 1px dashed var(--color-line);
+    border-radius: 99px;
+    background: transparent;
+    color: var(--color-faint);
+    font-size: 0.8125rem;
+    line-height: 1;
+    padding: 0.4375rem 0.8125rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+      color 0.18s var(--ease-out-soft),
+      border-color 0.18s var(--ease-out-soft);
+  }
+  .ghost-chip:hover {
+    color: var(--color-paper);
+    border-color: var(--color-forest-bright);
+    border-style: solid;
+  }
+
+  /* ---------------------------------------------------------------- meta */
 
   .eyebrow {
     font-size: 0.6875rem;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--color-faint);
+    font-weight: 500;
+  }
+
+  /** Small metadata pill that sits over a thumbnail. */
+  .overlay-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: var(--radius-xs);
+    background: color-mix(in srgb, #000 70%, transparent);
+    backdrop-filter: blur(4px);
+    color: var(--color-paper);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    padding: 0.1875rem 0.4375rem;
+  }
+
+  /** Left rule used to open major sections. */
+  .rule-accent {
+    position: relative;
+    padding-left: 0.875rem;
+  }
+  .rule-accent::before {
+    content: '';
+    position: absolute;
+    top: 0.2em;
+    bottom: 0.2em;
+    left: 0;
+    width: 2px;
+    border-radius: 2px;
+    background: linear-gradient(
+      180deg,
+      var(--color-accent) 0%,
+      var(--color-forest-bright) 100%
+    );
+  }
+
+  /* -------------------------------------------------------- scroll rails */
+
+  .rail {
+    display: grid;
+    grid-auto-flow: column;
+    /* Without this, auto columns stretch to fill a flex-1 rail and the facet
+       chips end up spread across the row with large gaps between them. */
+    grid-auto-columns: max-content;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scroll-padding-left: 1.25rem;
+    padding-bottom: 0.5rem;
+    scrollbar-width: none;
+  }
+  .rail::-webkit-scrollbar {
+    display: none;
+  }
+  .rail > * {
+    scroll-snap-align: start;
   }
 }
 
 @layer utilities {
-  /*
-   * Touch targets. Measured at 390px: chips were 31px and inline nav/footer
-   * links 19-21px tall, under the 24px WCAG 2.5.8 minimum. Applied only to
-   * coarse pointers so desktop density is untouched.
-   */
+  /* Touch targets: measured under the 24px WCAG 2.5.8 minimum at 390px. */
   @media (pointer: coarse) {
+    /* `header > a` covers the logo, which sits outside <nav> and measured 20px. */
+    header > div > a,
     nav a,
     footer a {
       display: inline-flex;
       align-items: center;
-      min-height: 32px;
+      min-height: 34px;
     }
   }
 
@@ -195,32 +370,74 @@
     border-width: 0;
   }
 
-  /* Entrance: one short rise, staggered by inline delay at the call site. */
-  .rise {
-    animation: rise 0.42s var(--ease-out-soft) both;
+  /**
+   * Film grain.
+   *
+   * An SVG feTurbulence baked into a data URI — no image request, no
+   * dependency. Very low opacity: it exists to stop large dark areas from
+   * banding and reading as dead flat, not to be seen.
+   */
+  .grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.16;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
   }
 
-  /* Skeleton shimmer for loading states. */
+  .rise {
+    animation: rise 0.5s var(--ease-out-soft) both;
+  }
+
+  .fade-in {
+    animation: fadeIn 0.5s var(--ease-out-soft) both;
+  }
+
   .shimmer {
     background: linear-gradient(
       90deg,
       var(--color-surface) 0%,
-      var(--color-surface-2) 50%,
+      var(--color-surface-3) 50%,
       var(--color-surface) 100%
     );
     background-size: 200% 100%;
-    animation: shimmer 1.4s linear infinite;
+    animation: shimmer 1.5s linear infinite;
+  }
+
+  /* Two-line and three-line clamps for card copy. */
+  .clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }
 
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
@@ -233,8 +450,70 @@
   }
 }
 
-/* Motion is decoration here, never information. */
+/** Ambient drift for the backdrop. Very slow, very small. */
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2%, -1.5%, 0) scale(1.06);
+  }
+}
+
+/**
+ * Onboarding question transitions.
+ *
+ * The outgoing question drifts in the direction of travel while the incoming
+ * one arrives from the opposite side, so forward and back read differently.
+ * Durations match TRANSITION_MS in Onboarding.tsx.
+ */
+@keyframes qEnter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes qLeave {
+  to {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+}
+
+@keyframes qLeaveBack {
+  to {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+.reveal-a {
+  animation: qEnter 0.7s var(--ease-out-soft) both;
+}
+.reveal-b {
+  animation: qEnter 0.8s var(--ease-out-soft) 0.35s both;
+}
+
+.q-enter {
+  animation: qEnter 0.5s var(--ease-out-soft) both;
+}
+.q-leave {
+  animation: qLeave 0.42s var(--ease-out-soft) both;
+}
+.q-leave-back {
+  animation: qLeaveBack 0.42s var(--ease-out-soft) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   *,
   *::before,
   *::after {

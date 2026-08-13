@@ -6,9 +6,14 @@ import { useEffect, useState } from 'react';
 
 import { SearchField } from './SearchField';
 
+/*
+ * Only routes that exist. An "Explore" entry was pointing at /subjects
+ * alongside a Subjects entry, which labelled one destination twice.
+ */
 const NAV = [
   { href: '/subjects', label: 'Subjects' },
   { href: '/places', label: 'Places' },
+  { href: '/search', label: 'Search' },
 ];
 
 /**
@@ -21,10 +26,15 @@ const NAV = [
  * The compact search field is hidden on `/` because the homepage already leads
  * with a large one — showing both would state the primary action twice.
  */
-export function Header() {
+export function Header({ personalised = false }: { personalised?: boolean }) {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
-  const isHome = pathname === '/';
+  /*
+   * The compact search is hidden on the homepage (which leads with a large
+   * one) and on /start, where a search box beside a full-screen questionnaire
+   * offers a competing way out of a flow the person just chose to begin.
+   */
+  const isHome = pathname === '/' || pathname === '/start';
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -35,21 +45,38 @@ export function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-40 border-b transition-[background-color,border-color] duration-300 ${
+      className={`sticky top-0 z-40 border-b transition-[background-color,border-color,backdrop-filter] duration-300 ${
         scrolled
-          ? 'border-line bg-ink/85 backdrop-blur-md supports-[backdrop-filter]:bg-ink/70'
+          ? 'glass border-line/80'
           : 'border-transparent bg-transparent'
       }`}
     >
       <div className="mx-auto flex h-16 w-full max-w-[1400px] items-center gap-4 px-5 sm:gap-6 sm:px-8">
         <Link
           href="/"
-          className="shrink-0 font-display text-[19px] leading-none tracking-tight text-paper transition-colors hover:text-accent"
+          className="group shrink-0 font-display text-[20px] leading-none tracking-tight text-paper transition-colors hover:text-accent"
         >
-          Clipahoy
+          Clip<span className="text-accent transition-colors group-hover:text-paper">ahoy</span>
         </Link>
 
         <nav aria-label="Primary" className="hidden items-center gap-1 sm:flex">
+          {/*
+            Personalisation is a destination, not a setting, so it leads the
+            nav. The label doubles as the call to action before anyone has
+            answered the questions.
+          */}
+          <Link
+            href={personalised ? '/' : '/start'}
+            aria-current={isHome && personalised ? 'page' : undefined}
+            className={`relative rounded-xs px-3 py-2 text-[14px] transition-colors ${
+              personalised
+                ? 'text-paper after:absolute after:inset-x-3 after:-bottom-0.5 after:h-px after:bg-accent'
+                : 'text-accent hover:text-accent-soft'
+            }`}
+          >
+            {personalised ? 'My Archive' : 'Make my archive'}
+          </Link>
+
           {NAV.map((item) => {
             const active = pathname.startsWith(item.href);
             return (
@@ -57,8 +84,10 @@ export function Header() {
                 key={item.href}
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
-                className={`rounded-xs px-3 py-2 text-[14px] transition-colors ${
+                className={`relative rounded-xs px-3 py-2 text-[14px] transition-colors ${
                   active ? 'text-paper' : 'text-mute hover:text-paper'
+                } after:absolute after:inset-x-3 after:-bottom-0.5 after:h-px after:origin-left after:bg-accent after:transition-transform after:duration-300 ${
+                  active ? 'after:scale-x-100' : 'after:scale-x-0 hover:after:scale-x-100'
                 }`}
               >
                 {item.label}
@@ -79,8 +108,17 @@ export function Header() {
       {/* Mobile nav: the two browse axes stay reachable without a menu. */}
       <nav
         aria-label="Primary mobile"
-        className="flex items-center gap-1 border-t border-line-soft px-5 py-2 sm:hidden"
+        className="flex items-center gap-1 overflow-x-auto border-t border-line-soft/60 px-5 py-2 sm:hidden"
       >
+        <Link
+          href={personalised ? '/' : '/start'}
+          className={`shrink-0 rounded-xs px-3 py-1.5 text-[13px] whitespace-nowrap transition-colors ${
+            personalised ? 'text-paper' : 'text-accent'
+          }`}
+        >
+          {personalised ? 'My Archive' : 'Make my archive'}
+        </Link>
+
         {NAV.map((item) => {
           const active = pathname.startsWith(item.href);
           return (
@@ -88,7 +126,7 @@ export function Header() {
               key={item.href}
               href={item.href}
               aria-current={active ? 'page' : undefined}
-              className={`rounded-xs px-3 py-1.5 text-[13px] transition-colors ${
+              className={`shrink-0 rounded-xs px-3 py-1.5 text-[13px] whitespace-nowrap transition-colors ${
                 active ? 'text-paper' : 'text-mute'
               }`}
             >

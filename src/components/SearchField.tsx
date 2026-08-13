@@ -88,7 +88,7 @@ export function SearchField({
          * examples are already offered as tappable chips below the field.
          */
         placeholder={compact ? 'Search' : 'Search the archive'}
-        className={`panel w-full text-paper outline-none transition-[border-color,background-color] duration-200 placeholder:text-faint focus:border-accent/60 ${
+        className={`panel w-full text-paper outline-none transition-[border-color,background-color,box-shadow] duration-300 placeholder:text-faint focus:border-accent/70 focus:shadow-[0_0_0_4px_rgba(245,197,24,0.10),0_10px_40px_-12px_rgba(245,197,24,0.35)] ${
           compact
             ? 'h-10 rounded-sm pr-3 pl-9 text-[14px]'
             : 'h-14 rounded-sm pr-28 pl-12 text-[16px] sm:h-16 sm:text-[17px]'

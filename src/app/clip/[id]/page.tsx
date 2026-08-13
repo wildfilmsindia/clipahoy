@@ -1,13 +1,18 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 
 import { getClip, getPlace } from '@/lib/archive';
 import { describeClip, describeLocation } from '@/lib/describe';
-import { relatedClips } from '@/lib/search';
+import { clipsForSubject, relatedClips } from '@/lib/search';
 import { toCards } from '@/lib/cards';
-import { ClipGrid } from '@/components/ClipGrid';
+import { VideoCard } from '@/components/VideoCard';
+import { VideoGrid } from '@/components/VideoGrid';
+import { Rail, SectionHead } from '@/components/Rail';
 import { Player } from '@/components/Player';
+import { recommend } from '@/lib/recommend';
+import { TASTE_COOKIE, decodeTaste } from '@/lib/taste';
 
 const LICENSE_URL = 'https://www.wildfilmsindia.com/contact';
 
@@ -40,35 +45,68 @@ export default async function ClipPage({ params }: Props) {
   const place = clip.placeId ? getPlace(clip.placeId) : undefined;
   const sentence = describeClip(clip, place);
   const location = describeLocation(clip, place, sentence);
-  const related = toCards(relatedClips(clip, 6));
+
+  const upNext = toCards(relatedClips(clip, 8));
+
+  const taste = decodeTaste((await cookies()).get(TASTE_COOKIE)?.value);
+  const forYou = taste
+    ? toCards(recommend(taste).keepExploring.filter((c) => c.id !== clip.id).slice(0, 10))
+    : [];
+
+  const primarySubject = clip.subjects[0];
+  const moreLikeThis = primarySubject
+    ? toCards(
+        clipsForSubject(primarySubject, 0, 20).clips.filter((c) => c.id !== clip.id).slice(0, 8),
+      )
+    : [];
 
   return (
-    <main className="mx-auto w-full max-w-[1400px] px-5 pt-8 pb-16 sm:px-8 sm:pt-10">
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-12">
+    <main className="mx-auto w-full max-w-[1600px] px-5 pt-6 pb-20 sm:px-8 sm:pt-8">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_368px] lg:gap-10">
+        {/* ------------------------------------------------------- player */}
         <div className="min-w-0">
           <Player clipId={clip.id} title={sentence} isPlaceholder={clip.isPlaceholder} />
 
-          <h1 className="mt-7 font-display text-[24px] leading-snug font-light text-balance sm:text-[30px]">
+          <h1 className="mt-6 font-display text-[26px] leading-snug font-light text-balance sm:text-[34px]">
             {sentence}
           </h1>
 
-          {location && (
-            <p className="mt-3 text-[14px] text-mute">
-              {place ? (
-                <Link
-                  href={`/place/${place.id}`}
-                  className="underline decoration-line underline-offset-4 transition-colors hover:text-paper hover:decoration-accent"
-                >
-                  {location}
-                </Link>
-              ) : (
-                location
-              )}
-            </p>
-          )}
+          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-line-soft pb-6">
+            {place && (
+              <Link
+                href={`/place/${place.id}`}
+                className="group inline-flex items-center gap-2 text-[14px] text-mute transition-colors hover:text-accent"
+              >
+                <PinIcon />
+                {location ?? place.name}
+              </Link>
+            )}
+
+            {clip.year !== null && (
+              /* Inferred from description text, never a filming-date field, and
+                 wrong ~31% of the time where it can be checked — so it is
+                 attributed rather than asserted. See AUDIT.md §F. */
+              <span
+                className="inline-flex items-center gap-2 text-[14px] text-mute"
+                title="Year mentioned in the archive description — not a verified filming date"
+              >
+                <ClockIcon />
+                {clip.year} <span className="text-faint">mentioned in description</span>
+              </span>
+            )}
+
+            <a
+              href={`https://www.youtube.com/watch?v=${clip.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-auto text-[13px] text-faint transition-colors hover:text-mute"
+            >
+              Watch on YouTube ↗
+            </a>
+          </div>
 
           {clip.subjects.length > 0 && (
-            <ul className="mt-6 flex flex-wrap gap-2">
+            <ul className="mt-5 flex flex-wrap gap-2">
               {clip.subjects.map((s) => (
                 <li key={s}>
                   <Link href={`/subject/${encodeURIComponent(s)}`} className="chip capitalize">
@@ -80,69 +118,104 @@ export default async function ClipPage({ params }: Props) {
           )}
 
           {clip.text && (
-            <div className="mt-8 max-w-2xl border-t border-line-soft pt-7">
+            <div className="panel mt-6 p-5">
               <p className="eyebrow">From the archive record</p>
               <p className="mt-3 text-[15px] leading-relaxed text-mute">{clip.text}</p>
             </div>
           )}
-        </div>
 
-        {/* -------------------------------------------------------- sidebar */}
-        <aside className="lg:sticky lg:top-24 lg:self-start">
-          <div className="panel p-5">
-            <p className="eyebrow">Licensing</p>
-            <p className="mt-3 text-[14px] leading-relaxed text-mute">
-              This footage is available to license from Wilderness Films India.
-            </p>
+          <div className="panel mt-4 flex flex-wrap items-center gap-4 p-5">
+            <div className="min-w-0 flex-1">
+              <p className="font-display text-[18px] text-paper">License this footage</p>
+              <p className="mt-1.5 text-[13.5px] leading-relaxed text-mute">
+                Broadcast-quality masters are available from Wilderness Films India.
+              </p>
+            </div>
             <a
               href={LICENSE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-primary mt-5 w-full"
+              className="btn btn-primary shrink-0"
             >
-              License this footage
-            </a>
-            <a
-              href={`https://www.youtube.com/watch?v=${clip.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-ghost mt-2.5 w-full"
-            >
-              Watch on YouTube
+              Enquire
             </a>
           </div>
+        </div>
+
+        {/* ------------------------------------------------------ up next */}
+        <aside className="min-w-0">
+          <p className="eyebrow rule-accent">
+            {place ? `More from ${place.name}` : 'Related footage'}
+          </p>
+          <ul className="mt-5 space-y-4">
+            {upNext.map((c, i) => (
+              <li key={c.clip.id} className="rise" style={{ animationDelay: `${i * 40}ms` }}>
+                <VideoCard data={c} size="row" index={i} />
+              </li>
+            ))}
+          </ul>
+          {place && (
+            <Link
+              href={`/place/${place.id}`}
+              className="btn btn-ghost mt-5 w-full"
+            >
+              All {place.name} footage
+            </Link>
+          )}
         </aside>
       </div>
 
-      {related.length > 0 && (
+      {moreLikeThis.length > 0 && (
         <section className="mt-20">
-          <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line-soft pb-5">
-            <div>
-              <p className="eyebrow">Nearby in the archive</p>
-              <h2 className="mt-2.5 font-display text-[24px] leading-tight font-light sm:text-[28px]">
-                {place ? `More from ${place.name}` : 'Related footage'}
-              </h2>
-            </div>
-            {place && (
-              <Link
-                href={`/place/${place.id}`}
-                className="group inline-flex items-center gap-1.5 text-[14px] text-mute transition-colors hover:text-paper"
-              >
-                All of {place.name}
-                <span
-                  aria-hidden="true"
-                  className="transition-transform duration-200 group-hover:translate-x-0.5"
-                >
-                  →
-                </span>
-              </Link>
-            )}
-          </div>
-          <div className="mt-8">
-            <ClipGrid cards={related} priorityCount={3} />
+          <SectionHead
+            eyebrow="Keep exploring"
+            title={`More ${primarySubject}`}
+            href={`/subject/${encodeURIComponent(primarySubject!)}`}
+            linkLabel="See all"
+          />
+          <div className="mt-7">
+            <VideoGrid cards={moreLikeThis} columns="dense" eagerCount={0} />
           </div>
         </section>
       )}
+
+      {/*
+        Carries the personalised feed into the watch page, so a viewer who
+        follows a link out of their feed can get back into it without
+        returning home. Absent entirely for anyone who never answered.
+      */}
+      {forYou.length > 0 && (
+        <Rail
+          flush
+          cards={forYou}
+          eyebrow="Made for you"
+          title="You might also like"
+          href="/"
+          linkLabel="Your archive"
+        />
+      )}
     </main>
+  );
+}
+
+function PinIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5 shrink-0" aria-hidden="true">
+      <path
+        d="M8 14s5-4.35 5-8A5 5 0 0 0 3 6c0 3.65 5 8 5 8Z"
+        stroke="currentColor"
+        strokeWidth="1.3"
+      />
+      <circle cx="8" cy="6" r="1.8" stroke="currentColor" strokeWidth="1.3" />
+    </svg>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5 shrink-0" aria-hidden="true">
+      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M8 4.5V8l2.5 1.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
   );
 }

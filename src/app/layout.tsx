@@ -1,10 +1,13 @@
 import type { Metadata, Viewport } from 'next';
 import { Newsreader, IBM_Plex_Sans } from 'next/font/google';
 import { Suspense } from 'react';
+import { cookies } from 'next/headers';
 
 import { getAllClips, getCoveredPlaces } from '@/lib/archive';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { Backdrop } from '@/components/Backdrop';
+import { TASTE_COOKIE, decodeTaste, hasAnswers } from '@/lib/taste';
 import './globals.css';
 
 const newsreader = Newsreader({
@@ -37,13 +40,24 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const clips = getAllClips().length;
   const places = getCoveredPlaces(20).length;
 
+  // Read here rather than in Header: the header is a client component, and a
+  // server read means the correct label ships in the first HTML.
+  const personalised = hasAnswers(decodeTaste((await cookies()).get(TASTE_COOKIE)?.value));
+
   return (
     <html lang="en" className={`${newsreader.variable} ${plex.variable}`}>
-      <body className="min-h-dvh bg-ink text-paper antialiased">
+      {/*
+        No bg-* utility on body: html paints the ink base. An opaque background
+        here covers every negative-z-index layer, which hid the Backdrop
+        completely and made the site render flat black however strong its
+        gradients were.
+      */}
+      <body className="relative min-h-dvh text-paper antialiased">
+        <Backdrop />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:rounded-sm focus:bg-accent focus:px-4 focus:py-2 focus:text-ink"
@@ -53,7 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {/* Header reads searchParams, which requires a Suspense boundary. */}
         <Suspense fallback={<div className="h-16 border-b border-transparent" />}>
-          <Header />
+          <Header personalised={personalised} />
         </Suspense>
 
         <div id="main">{children}</div>
