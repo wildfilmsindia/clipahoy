@@ -1,0 +1,233 @@
+{
+  "_comment": "Fixed relevance benchmark for the search layer, reusable across sessions. `must` is a list of concept regexes tested against title+prose; ALL must match for a result to count as relevant. Conjunctive on purpose: an earlier version used a single permissive alternation and scored 100% on everything, because BM25 only returns documents containing the query terms in the first place, making 'mentions any query word' a tautology. Each concept accepts synonyms so any reasonable reading of the query counts.",
+  "_scoring": "precision@8 per query, unweighted mean across queries. Zero results scores 0.",
+  "queries": [
+    {
+      "id": "audit-1",
+      "query": "Kolkata tram",
+      "source": "AUDIT.md SG",
+      "must": [
+        "tram",
+        "kolkata|calcutta"
+      ]
+    },
+    {
+      "id": "audit-2",
+      "query": "Mumbai monsoon",
+      "source": "AUDIT.md SG",
+      "must": [
+        "monsoon|rain|downpour|flood|waterlog",
+        "mumbai|bombay"
+      ]
+    },
+    {
+      "id": "audit-3",
+      "query": "Delhi railway station",
+      "source": "AUDIT.md SG",
+      "must": [
+        "railway|train|locomotive|platform",
+        "station|junction|terminus",
+        "delhi"
+      ]
+    },
+    {
+      "id": "audit-4",
+      "query": "Rajasthan village",
+      "source": "AUDIT.md SG",
+      "must": [
+        "village|rural|hamlet",
+        "rajasthan|jaisalmer|jodhpur|bikaner|udaipur|pushkar|jaipur"
+      ]
+    },
+    {
+      "id": "audit-5",
+      "query": "Indian street market",
+      "source": "AUDIT.md SG",
+      "must": [
+        "market|bazaar|bazar|mandi",
+        "street|road|lane|stall|vendor|hawker|footpath"
+      ]
+    },
+    {
+      "id": "audit-6",
+      "query": "Kerala backwaters",
+      "source": "AUDIT.md SG",
+      "must": [
+        "backwater|houseboat|kettuvallam|canal|lagoon|boat",
+        "kerala|alappuzha|alleppey|kochi|kumarakom|kollam"
+      ]
+    },
+    {
+      "id": "audit-7",
+      "query": "Himalayan landscape",
+      "source": "AUDIT.md SG",
+      "must": [
+        "himalaya|himalayan",
+        "mountain|peak|snow|glacier|valley|range|hill|landscape|scenic"
+      ]
+    },
+    {
+      "id": "audit-8",
+      "query": "Indian wedding",
+      "source": "AUDIT.md SG",
+      "must": [
+        "wedding|marriage|baraat|barat|bride|groom|shaadi|vivah|dulhan"
+      ]
+    },
+    {
+      "id": "festival-oov",
+      "query": "Hornbill Festival",
+      "source": "named festival outside closed vocabulary",
+      "must": [
+        "hornbill",
+        "festival|kohima|nagaland|naga"
+      ]
+    },
+    {
+      "id": "festival-oov-2",
+      "query": "Chhath Puja",
+      "source": "named festival outside closed vocabulary",
+      "must": [
+        "chhath"
+      ]
+    },
+    {
+      "id": "festival-oov-3",
+      "query": "Kila Raipur",
+      "source": "named local festival",
+      "must": [
+        "kila raipur|rural olympic"
+      ]
+    },
+    {
+      "id": "place-lowcount",
+      "query": "Konark",
+      "source": "named place, 18 tagged clips",
+      "must": [
+        "konark"
+      ]
+    },
+    {
+      "id": "place-lowcount-2",
+      "query": "Mawlynnong",
+      "source": "very low count named village",
+      "must": [
+        "mawlynnong"
+      ]
+    },
+    {
+      "id": "twoword-place",
+      "query": "Dal Lake",
+      "source": "two-word place at risk of splitting",
+      "must": [
+        "dal lake|shikara|srinagar|dal"
+      ],
+      "must_not": [
+        "chana dal|gram dal|janta dal|janata dal|dal and choorma|moong|lentil"
+      ]
+    },
+    {
+      "id": "twoword-place-2",
+      "query": "Chandni Chowk",
+      "source": "two-word place at risk of splitting",
+      "must": [
+        "chandni chowk"
+      ]
+    },
+    {
+      "id": "collision",
+      "query": "Meenakshi",
+      "source": "person-name collision risk",
+      "must": [
+        "meenakshi"
+      ],
+      "must_not": [
+        "seshadri|sheshadri|lekhi"
+      ]
+    },
+    {
+      "id": "collision-2",
+      "query": "Victoria Memorial",
+      "source": "shared proper noun",
+      "must": [
+        "victoria",
+        "memorial|kolkata|calcutta"
+      ]
+    },
+    {
+      "id": "food-1",
+      "query": "street food stall",
+      "source": "food query",
+      "must": [
+        "food|snack|chaat|eat|cook|dish|meal",
+        "stall|vendor|street|hawker|shop|cart"
+      ]
+    },
+    {
+      "id": "food-2",
+      "query": "biryani",
+      "source": "named dish",
+      "must": [
+        "biryani"
+      ]
+    },
+    {
+      "id": "food-3",
+      "query": "sweet shop",
+      "source": "food query",
+      "must": [
+        "sweet|mithai|jalebi|laddu|halwa|barfi|rasgulla"
+      ],
+      "must_not": [
+        "sweet water|sweet potato"
+      ]
+    },
+    {
+      "id": "school-1",
+      "query": "school children classroom",
+      "source": "school query",
+      "must": [
+        "school|classroom|class",
+        "student|children|child|pupil|kid|teacher"
+      ]
+    },
+    {
+      "id": "school-2",
+      "query": "village school",
+      "source": "school query",
+      "must": [
+        "school",
+        "village|rural"
+      ]
+    },
+    {
+      "id": "open-1",
+      "query": "Ambassador cars",
+      "source": "open curiosity phrase",
+      "must": [
+        "ambassador"
+      ],
+      "must_not": [
+        "ambassador to|us ambassador|ambassador of india to"
+      ]
+    },
+    {
+      "id": "open-2",
+      "query": "handloom weaving",
+      "source": "open curiosity phrase",
+      "must": [
+        "handloom|loom|weav",
+        "saree|sari|silk|cloth|textile|fabric|yarn|thread|handloom|weav"
+      ]
+    },
+    {
+      "id": "open-3",
+      "query": "old cinema hall",
+      "source": "open curiosity phrase",
+      "must": [
+        "cinema|theatre|theater|talkies",
+        "hall|screen|poster|ticket|marquee|single-screen|single screen|building|exterior"
+      ]
+    }
+  ]
+}

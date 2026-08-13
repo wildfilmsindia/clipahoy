@@ -20,9 +20,13 @@ import { SUBJECTS, type Clip, type Subject } from './types';
  *      place/subject tags in isolation.
  */
 
-const K1 = 1.5; // term-frequency saturation
-const B = 0.75; // length normalisation
-const TITLE_WEIGHT = 3; // a term in the title counts triple
+/*
+ * Tuning constants. Overridable by env so scripts/benchmark.ts can sweep them
+ * without editing source; production always uses the defaults below.
+ */
+const K1 = Number(process.env.BM25_K1 ?? 1.5); // term-frequency saturation
+const B = Number(process.env.BM25_B ?? 0.75); // length normalisation
+const TITLE_WEIGHT = Number(process.env.BM25_TITLE_WEIGHT ?? 3); // title counts triple
 
 const STOPWORDS = new Set([
   'the', 'a', 'an', 'and', 'or', 'of', 'in', 'on', 'at', 'to', 'for', 'with',
@@ -98,6 +102,24 @@ export function warmIndex(): void {
 
 export type Hit = { clip: Clip; score: number };
 
+/**
+ * Personal names that collide with places and monuments people search for.
+ *
+ * Lives here, not in the recommender, so BOTH paths get it. It was originally
+ * added to the personalised feed only, which meant typing "Meenakshi" into the
+ * onboarding returned the temple while typing it into /search still returned
+ * the actress — the two paths had silently drifted apart.
+ *
+ * `bare` matches only the one-word query. Someone searching "Meenakshi
+ * Seshadri" or "Mount Kailash" has already disambiguated and is left alone.
+ * `personal` matches only the full personal-name form, so the exclusion stays
+ * tiny: 10 clips for Seshadri, 25 for Kailash Kher.
+ */
+const NAME_COLLISIONS: { bare: RegExp; personal: RegExp }[] = [
+  { bare: /^meenakshi$/i, personal: /meenakshi\s+sh?eshadri/i },
+  { bare: /^kailash$/i, personal: /kailash\s+(?:kher|ji\b)/i },
+];
+
 export function search(query: string, limit = 60): Hit[] {
   const terms = tokenise(query);
   if (terms.length === 0) return [];
@@ -130,6 +152,14 @@ export function search(query: string, limit = 60): Hit[] {
   }
 
   hits.sort((a, b) => b.score - a.score);
+
+  const collision = NAME_COLLISIONS.find((c) => c.bare.test(query.trim()));
+  if (collision) {
+    return hits
+      .filter((h) => !collision.personal.test(`${h.clip.title} ${h.clip.text ?? ''}`))
+      .slice(0, limit);
+  }
+
   return hits.slice(0, limit);
 }
 

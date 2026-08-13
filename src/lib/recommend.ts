@@ -55,43 +55,13 @@ const NOSTALGIC: Subject[] = ['old town', 'railway', 'bazaar', 'architecture', '
  * specific term outside the closed vocabulary, rather than needing every
  * festival, temple and market name added by hand.
  */
-/**
- * Personal names that collide with places and monuments people type.
- *
- * Handled the way the gazetteer collisions were (AUDIT.md: "Kailash" matching
- * the singer Kailash Kher, "Hong Kong" matching a stuntman's biography): a
- * narrow, named exclusion rather than a rule that might drop good footage.
- *
- * `term` only matches the BARE ambiguous word. Someone who types "Meenakshi
- * Temple" or "Mount Kailash" has already disambiguated and is left alone; it
- * is the one-word form that needs help. `personal` matches only the full
- * personal-name form, so the exclusion is tiny — 3 clips for Seshadri, 25 for
- * Kailash Kher, out of 53 and 168 mentions respectively.
- */
-const NAME_COLLISIONS: { term: RegExp; personal: RegExp }[] = [
-  /*
-   * Typing "Meenakshi" returned Meenakshi Seshadri dancing at the Pune
-   * Festival above the temple itself.
-   *
-   * Held to the actress (both spellings in the corpus) on purpose. The bare
-   * word is mostly people here — Lekhi 29, Seshadri/Sheshadri 10, temple 3 —
-   * and excluding Lekhi too shrank the pool below the personalisation
-   * threshold, so the whole feed fell back to generic. A worse answer than a
-   * slightly noisy one.
-   */
-  { term: /^meenakshi$/i, personal: /meenakshi\s+sh?eshadri/i },
-  // "Kailash" is the mountain and the pilgrimage; Kailash Kher is a singer.
-  { term: /^kailash$/i, personal: /kailash\s+(?:kher|ji\b)/i },
-];
-
 function textBoosts(terms: string[]): Map<string, number> {
   const boosts = new Map<string, number>();
   for (const term of terms) {
     const rarity = termRarity(term);
-    const collision = NAME_COLLISIONS.find((c) => c.term.test(term.trim()));
-    const hits = search(term, 120).filter(
-      (h) => !collision?.personal.test(`${h.clip.title} ${h.clip.text ?? ''}`),
-    );
+    // Name-collision filtering now lives in search.ts, so both this path and
+    // the direct /search box get it from one place.
+    const hits = search(term, 120);
     hits.forEach((hit, i) => {
       const value = (1 - i / hits.length) * rarity;
       /*
@@ -139,7 +109,7 @@ function placeWeight(placeId: string): number {
   return weight;
 }
 
-type Scored = { clip: Clip; score: number; matchedPlace: boolean };
+type Scored = { clip: Clip; score: number; matchedPlace: boolean; textBoost: number };
 
 function scoreAll(signals: Signals): Scored[] {
   const boosts = textBoosts(signals.terms);
@@ -169,10 +139,10 @@ function scoreAll(signals: Signals): Scored[] {
       if (signals.subjects.has(subject)) score += W.subject;
     }
 
-    const boost = boosts.get(clip.id);
+    const boost = boosts.get(clip.id) ?? 0;
     if (boost) score += boost * W.text;
 
-    if (score > 0) out.push({ clip, score, matchedPlace });
+    if (score > 0) out.push({ clip, score, matchedPlace, textBoost: boost });
   }
 
   out.sort((a, b) => b.score - a.score);
@@ -256,7 +226,27 @@ export function recommend(answers: Answers): Recommendation {
     return picked;
   };
 
-  const firstPicks = take(scored, 9);
+  /*
+   * The opening row reserves two slots for the free-text answers.
+   *
+   * Three of the five questions are place-type (parents, school, favourite
+   * state) and the school question also implies a subject tag, so place signal
+   * now stacks three ways against a single typed phrase. Measured across seven
+   * combinations, the food or open answer reached the opening row in five —
+   * but "Ambassador cars" alongside Punjab, Shimla and Himachal Pradesh scored
+   * 9.5 against 15.2 for a tagged Shimla school clip and vanished from it.
+   *
+   * Weighting alone cannot fix that without making place answers useless, so
+   * representation is guaranteed instead of hoped for: whatever else is true,
+   * what someone typed in their own words appears near the top.
+   */
+  const firstPicks = take(scored, 7);
+  const typedVoice = take(
+    scored.filter((s) => s.textBoost > 0.4 && !s.matchedPlace),
+    2,
+    1,
+  );
+  firstPicks.splice(2, 0, ...typedVoice);
   const closeToHome = take(scored.filter((s) => s.matchedPlace), 8);
   const remember = take(
     scored.filter((s) => s.matchedPlace && s.clip.subjects.some((x) => NOSTALGIC.includes(x))),

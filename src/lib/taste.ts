@@ -9,6 +9,8 @@
  * must stay free of any archive import.
  */
 
+import type { Subject } from './types';
+
 /**
  * Which suggestion pool backs a question.
  *
@@ -16,7 +18,7 @@
  * something outside the closed subject vocabulary, and it should reach the
  * BM25 fallback rather than be steered back toward words we already know.
  */
-export type QuestionKind = 'place' | 'festival' | 'street' | 'open';
+export type QuestionKind = 'place' | 'state' | 'food' | 'open';
 
 export type TasteQuestion = {
   id: string;
@@ -30,10 +32,19 @@ export type TasteQuestion = {
   examples: string[];
   /** Which vocabulary powers autocomplete. */
   kind: QuestionKind;
+  /**
+   * Subject tags this question implies regardless of what is typed.
+   *
+   * "Where did you go to school?" names a place, but the reason for asking is
+   * the schooling, and the archive has a `school` tag with 1,341 clips. Without
+   * this, answering "Shimla" here would be indistinguishable from answering it
+   * anywhere else.
+   */
+  implies?: Subject[];
 };
 
 /** Bump when the question set changes, so stale cookies are discarded. */
-export const TASTE_VERSION = 4;
+export const TASTE_VERSION = 5;
 export const TASTE_COOKIE = 'clipahoy_taste';
 
 /** Free text, keyed by question id. */
@@ -43,49 +54,55 @@ export type StoredTaste = { v: number; a: Answers };
 
 export const QUESTIONS: TasteQuestion[] = [
   {
-    id: 'live',
+    id: 'parents',
     eyebrow: "Let's get to know your India",
-    prompt: 'Where do you live?',
-    support: 'Start with somewhere that already feels ordinary to you.',
-    placeholder: 'Tell us your city…',
-    examples: ['Mumbai', 'Delhi', 'Bengaluru', 'Kolkata'],
+    prompt: 'Where are your parents from?',
+    support: 'The place that comes up at every family gathering.',
+    placeholder: 'A town, a district, a state…',
+    examples: ['Kerala', 'Punjab', 'Bengal', 'Tamil Nadu'],
     kind: 'place',
   },
   {
-    id: 'roots',
-    eyebrow: 'Where you come from',
-    prompt: 'Where did you grow up?',
-    support: 'A town, a district, a state — whatever comes to mind first.',
-    placeholder: 'City, town, village…',
-    examples: ['Bombay', 'Kerala', 'Darjeeling', 'Jaipur'],
-    kind: 'place',
-  },
-  {
-    id: 'festival',
-    eyebrow: 'The loudest week of the year',
-    prompt: 'What festival do you remember the most?',
-    support: 'The one you could hear from your street before you could see it.',
-    placeholder: 'Durga Puja, Holi…',
-    examples: ['Durga Puja', 'Holi', 'Ganesh Chaturthi', 'Kumbh Mela'],
-    kind: 'festival',
-  },
-  {
-    id: 'streets',
-    eyebrow: 'The walk you knew by heart',
-    prompt: 'What kind of streets do you remember?',
-    support: 'Markets, quiet lanes, something else entirely.',
-    placeholder: 'Markets, quiet lanes…',
-    examples: ['Street markets', 'Village lanes', 'Hill roads', 'Old town streets'],
-    kind: 'street',
-  },
-  {
-    id: 'curious',
-    eyebrow: 'One more',
-    prompt: 'What are you curious to see now?',
+    id: 'want',
+    eyebrow: 'The reason you are here',
+    prompt: 'What do you want to see?',
     support: 'Anything at all. This is the one where you can go off the map.',
     placeholder: 'Say it however you like…',
-    examples: ['Old cinemas', 'Ambassador cars', 'Handloom weaving', 'Paan shops'],
+    // 'Steam engines' was dropped: it matched too little and fell through to
+    // the generic feed. Every chip here was run through the recommender first.
+    examples: ['Old Bombay', 'Ambassador cars', 'Handloom weaving', 'Monsoon streets'],
     kind: 'open',
+  },
+  {
+    id: 'food',
+    eyebrow: 'The thing you miss first',
+    prompt: 'What is your favourite food?',
+    support: 'A dish, a stall, or just the smell of a particular street.',
+    placeholder: 'Biryani, street food, sweets…',
+    // 'Fish curry' was dropped: 13 clips, not enough to personalise on.
+    examples: ['Street food', 'Biryani', 'Sweets', 'Chaat'],
+    kind: 'food',
+  },
+  {
+    id: 'school',
+    eyebrow: 'Where the day started',
+    prompt: 'Where did you go to school?',
+    support: 'The town will do — we are after the place, not the school.',
+    placeholder: 'City, town, hill station…',
+    examples: ['Shimla', 'Darjeeling', 'Dehradun', 'Kolkata'],
+    kind: 'place',
+    // The archive has a `school` tag (1,341 clips), so this question can mean
+    // more than "another place": it pulls classrooms and playgrounds there.
+    implies: ['school'],
+  },
+  {
+    id: 'state',
+    eyebrow: 'One more',
+    prompt: "What's your favourite Indian state?",
+    support: 'The coarsest question we ask — a whole state, not a street.',
+    placeholder: 'Pick a state…',
+    examples: ['Rajasthan', 'Kerala', 'Assam', 'Himachal Pradesh'],
+    kind: 'state',
   },
 ];
 

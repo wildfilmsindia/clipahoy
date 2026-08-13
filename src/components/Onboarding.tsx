@@ -27,7 +27,7 @@ function reduced(): boolean {
   );
 }
 
-export type Vocabulary = { places: string[]; festivals: string[]; streets: string[] };
+export type Vocabulary = { places: string[]; states: string[]; food: string[] };
 
 export function Onboarding({
   vocabulary,
@@ -66,8 +66,8 @@ export function Onboarding({
   const pool = useMemo(() => {
     if (!question) return [];
     if (question.kind === 'place') return vocabulary.places;
-    if (question.kind === 'festival') return vocabulary.festivals;
-    if (question.kind === 'street') return vocabulary.streets;
+    if (question.kind === 'state') return vocabulary.states;
+    if (question.kind === 'food') return vocabulary.food;
     return [];
   }, [question, vocabulary]);
 

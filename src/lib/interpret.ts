@@ -295,6 +295,19 @@ const TERRAIN_WORDS: Record<string, Terrain[]> = {
   plateau: ['plateau'],
 };
 
+/**
+ * Short forms of state names people actually type. Resolved to the state, not
+ * to a town, so "Bengal" behaves like "West Bengal" instead of falling through
+ * to free text and flooding results with Bay-of-Bengal coastline.
+ */
+const STATE_ALIASES: Record<string, string> = {
+  bengal: 'West Bengal',
+  'tamilnadu': 'Tamil Nadu',
+  orissa: 'Odisha',
+  uttaranchal: 'Uttarakhand',
+  pondicherry: 'Puducherry',
+};
+
 const REGION_WORDS: Record<string, Region> = {
   'north india': 'North',
   'northern india': 'North',
@@ -416,6 +429,15 @@ function scan(text: string, kind: QuestionKind, out: Signals): boolean {
       }
 
       if (!hit) {
+        const stateAlias = STATE_ALIASES[phrase];
+        if (stateAlias) {
+          out.states.add(stateAlias);
+          out.understood.push(phrase);
+          hit = true;
+        }
+      }
+
+      if (!hit) {
         const place = places.get(phrase);
         if (place) {
           if (place.placeId) out.places.add(place.placeId);
@@ -429,12 +451,12 @@ function scan(text: string, kind: QuestionKind, out: Signals): boolean {
         const terrains = TERRAIN_WORDS[phrase];
         const subjects = SUBJECT_WORDS[phrase];
         /*
-         * Terrain applies to the two questions that name physical geography.
-         * The old 'terrain' question is gone; 'street' replaces it here
-         * because its own examples are hill roads and seafront roads.
-         * Festival and open-ended answers do not pull terrain.
+         * Terrain applies to answers that name physical geography — the place
+         * and state questions, and the open one, where "the hills" or "the
+         * coast" is a perfectly ordinary thing to type. The food question does
+         * not pull terrain.
          */
-        if (terrains && (kind === 'place' || kind === 'street')) {
+        if (terrains && kind !== 'food') {
           for (const t of terrains) out.terrains.add(t);
           hit = true;
         }
@@ -491,6 +513,8 @@ export function interpret(answers: Answers): Signals {
     const text = answers[q.id]?.trim();
     if (!text) continue;
     const structured = scan(text, q.kind, out);
+    // Question-level implications (see TasteQuestion.implies).
+    if (q.implies) for (const subject of q.implies) out.subjects.add(subject);
     // Only wholly-unrecognised answers are quoted back in the summary.
     if (!structured) out.spoken.push(text);
   }
@@ -523,14 +547,16 @@ export function isEmpty(signals: Signals): boolean {
  */
 export function suggestionVocabulary(): {
   places: string[];
-  festivals: string[];
-  streets: string[];
+  states: string[];
+  food: string[];
 } {
   const places = new Set<string>();
+  const states = new Set<string>();
   for (const place of getPlaces()) {
     if (place.country !== 'India') continue;
     places.add(place.name);
     places.add(place.state);
+    states.add(place.state);
   }
 
   /*
@@ -546,36 +572,23 @@ export function suggestionVocabulary(): {
     places: [...places].sort(),
 
     /*
-     * Counted in the corpus rather than listed from memory, so every name
-     * offered here returns something. Ordered by how much footage backs it:
-     * Durga Puja 959 clips, Kumbh Mela 926, Holi 757, down to Lohri 25.
-     * Names below ~25 mentions are left out — suggesting them would promise
-     * more than the archive holds.
-     *
-     * Most of these are not in SUBJECT_WORDS and do not need to be: they reach
-     * the ranking through the BM25 term path, which is what makes a specific
-     * festival name work at all.
+     * The state question is the coarsest signal in the set — a whole state
+     * rather than a town — so it gets its own pool drawn from the same 73
+     * state names the interpreter already resolves. Nothing new is invented.
      */
-    festivals: [
-      'Durga Puja', 'Kumbh Mela', 'Holi', 'Jagannath Rath Yatra', 'Rath Yatra',
-      'Kila Raipur', 'Dussehra', 'Surajkund Mela', 'Diwali', 'Hornbill Festival',
-      'Ganesh Chaturthi', 'Eid', 'Chhath Puja', 'Christmas', 'Bihu', 'Deepavali',
-      'Navratri', 'Pushkar Fair', 'Dasara', 'Muharram', 'Guru Nanak Jayanti',
-      'Ganpati', 'Shivratri', 'Makar Sankranti', 'Janmashtami', 'Mahashivratri',
-      'Pongal', 'Kanwar Yatra', 'Teej', 'Onam', 'Raksha Bandhan', 'Baisakhi',
-      'Losar', 'Lohri',
-    ],
+    states: [...states].sort(),
 
     /*
-     * Each of these was run through the recommender before being offered.
-     * Two candidates were dropped for returning the wrong thing: "Seafront
-     * roads" led with a Casablanca corniche, and "Tram lines" resolved to the
-     * `bus` tag and returned Delhi bus stops with no tram in sight.
+     * Counted in the corpus before being offered, like the place list. Only
+     * dishes with real footage behind them appear: sweets 1,005 clips,
+     * cooking 691, street food 475, biryani 127, thali 59, momos 48, samosa
+     * 44, paan 41, dosa 38. Anything thinner is left to free text rather than
+     * promised in a chip — "fish curry" (13 clips) was tested and dropped for
+     * falling through to the generic feed.
      */
-    streets: [
-      'Street markets', 'Bazaars', 'Hill roads', 'Village lanes',
-      'Old town streets', 'Highways', 'Ghats', 'Railway colonies',
-      'Tea stalls', 'Night streets', 'Monsoon streets', 'Quiet lanes',
+    food: [
+      'Street food', 'Sweets', 'Biryani', 'Chaat', 'Thali', 'Momos',
+      'Samosa', 'Paan', 'Dosa', 'Mithai', 'Chai', 'Kebabs', 'Pakoda',
     ],
   };
 }
