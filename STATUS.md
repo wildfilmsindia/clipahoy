@@ -3,7 +3,7 @@
 A single place to read where the product stands. Not an audit: AUDIT.md holds
 the investigation and its evidence. This is what is true today.
 
-Last updated: 2026-08-13 · `b7fbb4c` on `archive-discovery` and `main`.
+Last updated: 2026-08-14 · `b7fbb4c` on `archive-discovery` and `main`.
 
 ---
 
