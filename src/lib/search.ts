@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { getAllClips, getPlace } from './archive';
+import { getAllClips, getPlace, indiaFirst } from './archive';
 import { SUBJECTS, type Clip, type Subject } from './types';
 
 /**
@@ -192,7 +192,16 @@ export function clipsForSubject(
   offset = 0,
   limit = 24,
 ): { clips: Clip[]; total: number } {
-  const all = getAllClips().filter((c) => c.subjects.includes(subject));
+  /*
+   * India-first ordering is applied to the WHOLE set before slicing.
+   *
+   * It used to be applied by the page component to the 24 clips it had just
+   * received, which only reordered within that page — so /subject/railway
+   * page 1 led with Sahibabad Junction but page 2 could still open on an
+   * Amsterdam metro. Sorting here means foreign footage collects at the end of
+   * the whole subject rather than at the top of every page.
+   */
+  const all = indiaFirst(getAllClips().filter((c) => c.subjects.includes(subject)));
   return { clips: all.slice(offset, offset + limit), total: all.length };
 }
 

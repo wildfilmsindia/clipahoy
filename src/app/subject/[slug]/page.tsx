@@ -4,7 +4,6 @@ import { notFound } from 'next/navigation';
 
 import { SUBJECTS, type Subject } from '@/lib/types';
 import { clipsForSubject, getSubjectCounts } from '@/lib/search';
-import { indiaFirst } from '@/lib/archive';
 import { toCards } from '@/lib/cards';
 import { VideoCard } from '@/components/VideoCard';
 import { VideoGrid } from '@/components/VideoGrid';
@@ -38,7 +37,7 @@ export default async function SubjectPage({ params, searchParams }: Props) {
   const page = Math.max(1, Number((await searchParams).page) || 1);
   const offset = page === 1 ? 0 : 1 + (page - 1) * PAGE_SIZE;
   const { clips, total } = clipsForSubject(subject, offset, page === 1 ? PAGE_SIZE + 1 : PAGE_SIZE);
-  const cards = toCards(indiaFirst(clips));
+  const cards = toCards(clips); // already India-first: see clipsForSubject
 
   const hero = page === 1 ? cards[0] : undefined;
   const rest = page === 1 ? cards.slice(1) : cards;

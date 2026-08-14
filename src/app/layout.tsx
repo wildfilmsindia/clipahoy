@@ -1,13 +1,11 @@
 import type { Metadata, Viewport } from 'next';
 import { Newsreader, IBM_Plex_Sans } from 'next/font/google';
 import { Suspense } from 'react';
-import { cookies } from 'next/headers';
 
 import { getAllClips, getCoveredPlaces } from '@/lib/archive';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Backdrop } from '@/components/Backdrop';
-import { TASTE_COOKIE, decodeTaste, hasAnswers } from '@/lib/taste';
 import './globals.css';
 
 const newsreader = Newsreader({
@@ -40,16 +38,27 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+/*
+ * Reads the taste cookie before first paint and marks <html>.
+ *
+ * The nav label depends on whether someone has personalised, but reading the
+ * cookie in this layout made EVERY route server-rendered on demand, including
+ * /subjects and /places which have nothing user-specific on them. Doing it in
+ * a blocking inline script keeps those pages static and still avoids the
+ * label flashing from "Make my archive" to "My Archive" after hydration —
+ * both labels are in the HTML and CSS picks one, so there is no mismatch.
+ */
+const TASTE_FLAG = `try{var m=document.cookie.match(/clipahoy_taste=([^;]+)/);if(m){var a=JSON.parse(decodeURIComponent(m[1])).a;if(a&&Object.keys(a).some(function(k){return String(a[k]).trim()}))document.documentElement.dataset.taste='1'}}catch(e){}`;
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   const clips = getAllClips().length;
   const places = getCoveredPlaces(20).length;
 
-  // Read here rather than in Header: the header is a client component, and a
-  // server read means the correct label ships in the first HTML.
-  const personalised = hasAnswers(decodeTaste((await cookies()).get(TASTE_COOKIE)?.value));
-
   return (
     <html lang="en" className={`${newsreader.variable} ${plex.variable}`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: TASTE_FLAG }} />
+      </head>
       {/*
         No bg-* utility on body: html paints the ink base. An opaque background
         here covers every negative-z-index layer, which hid the Backdrop
@@ -67,7 +76,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
         {/* Header reads searchParams, which requires a Suspense boundary. */}
         <Suspense fallback={<div className="h-16 border-b border-transparent" />}>
-          <Header personalised={personalised} />
+          <Header />
         </Suspense>
 
         <div id="main">{children}</div>

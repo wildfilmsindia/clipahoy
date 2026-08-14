@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
 import { SearchField } from './SearchField';
 
@@ -26,7 +26,7 @@ const NAV = [
  * The compact search field is hidden on `/` because the homepage already leads
  * with a large one — showing both would state the primary action twice.
  */
-export function Header({ personalised = false }: { personalised?: boolean }) {
+export function Header() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   /*
@@ -65,16 +65,25 @@ export function Header({ personalised = false }: { personalised?: boolean }) {
             nav. The label doubles as the call to action before anyone has
             answered the questions.
           */}
+          {/*
+            Both states ship in the HTML; the inline script in layout.tsx marks
+            <html data-taste> before paint and CSS reveals the right one. That
+            keeps this route static and still shows the correct label on the
+            first frame.
+          */}
           <Link
-            href={personalised ? '/' : '/start'}
-            aria-current={isHome && personalised ? 'page' : undefined}
-            className={`relative rounded-xs px-3 py-2 text-[14px] transition-colors ${
-              personalised
-                ? 'text-paper after:absolute after:inset-x-3 after:-bottom-0.5 after:h-px after:bg-accent'
-                : 'text-accent hover:text-accent-soft'
-            }`}
+            href="/"
+            data-taste-on
+            className="relative rounded-xs px-3 py-2 text-[14px] text-paper transition-colors after:absolute after:inset-x-3 after:-bottom-0.5 after:h-px after:bg-accent"
           >
-            {personalised ? 'My Archive' : 'Make my archive'}
+            My Archive
+          </Link>
+          <Link
+            href="/start"
+            data-taste-off
+            className="relative rounded-xs px-3 py-2 text-[14px] text-accent transition-colors hover:text-accent-soft"
+          >
+            Make my archive
           </Link>
 
           {NAV.map((item) => {
@@ -99,7 +108,16 @@ export function Header({ personalised = false }: { personalised?: boolean }) {
         <div className="ml-auto flex min-w-0 flex-1 items-center justify-end gap-3">
           {!isHome && (
             <div className="w-full max-w-md">
-              <SearchField compact />
+              {/*
+                SearchField calls useSearchParams, which opts its subtree out of
+                prerendering. Boundary sits here rather than around the whole
+                header in layout.tsx — with it further out, the entire nav was
+                excluded from the static HTML of /subjects and /places and only
+                appeared after hydration.
+              */}
+              <Suspense fallback={<div className="h-10 rounded-sm border border-line" />}>
+                <SearchField compact />
+              </Suspense>
             </div>
           )}
         </div>
@@ -111,12 +129,18 @@ export function Header({ personalised = false }: { personalised?: boolean }) {
         className="flex items-center gap-1 overflow-x-auto border-t border-line-soft/60 px-5 py-2 sm:hidden"
       >
         <Link
-          href={personalised ? '/' : '/start'}
-          className={`shrink-0 rounded-xs px-3 py-1.5 text-[13px] whitespace-nowrap transition-colors ${
-            personalised ? 'text-paper' : 'text-accent'
-          }`}
+          href="/"
+          data-taste-on
+          className="shrink-0 rounded-xs px-3 py-1.5 text-[13px] whitespace-nowrap text-paper transition-colors"
         >
-          {personalised ? 'My Archive' : 'Make my archive'}
+          My Archive
+        </Link>
+        <Link
+          href="/start"
+          data-taste-off
+          className="shrink-0 rounded-xs px-3 py-1.5 text-[13px] whitespace-nowrap text-accent transition-colors"
+        >
+          Make my archive
         </Link>
 
         {NAV.map((item) => {

@@ -346,6 +346,23 @@
 }
 
 @layer utilities {
+  /*
+   * Personalisation-dependent nav labels.
+   *
+   * Both variants are rendered so the page can stay static; the inline script
+   * in layout.tsx sets data-taste on <html> before first paint. Using display
+   * keeps the hidden one out of the tab order and the accessibility tree.
+   */
+  [data-taste-on] {
+    display: none;
+  }
+  html[data-taste='1'] [data-taste-on] {
+    display: inline-flex;
+  }
+  html[data-taste='1'] [data-taste-off] {
+    display: none;
+  }
+
   /* Touch targets: measured under the 24px WCAG 2.5.8 minimum at 390px. */
   @media (pointer: coarse) {
     /* `header > a` covers the logo, which sits outside <nav> and measured 20px. */
