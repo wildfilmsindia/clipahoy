@@ -33,23 +33,19 @@ export function Onboarding({
   vocabulary,
   backdropClips = [],
   redirectOnDone = false,
-  initialAnswers,
 }: {
   vocabulary: Vocabulary;
   /** Real clip ids, one per question, blurred behind the interface. */
   backdropClips?: string[];
   redirectOnDone?: boolean;
-  /**
-   * Previous answers, for re-tuning. Editing should feel like adjusting what
-   * you said, not starting over — so every field opens pre-filled and the
-   * question keeps its example state only where nothing was answered before.
-   */
-  initialAnswers?: Answers;
 }) {
   const router = useRouter();
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Answers>(initialAnswers ?? {});
-  const [value, setValue] = useState(initialAnswers?.[QUESTIONS[0].id] ?? '');
+  // Always a clean slate. Building a new archive starts empty by design — an
+  // earlier version pre-filled the previous answers, which read as editing the
+  // old archive rather than making a new one.
+  const [answers, setAnswers] = useState<Answers>({});
+  const [value, setValue] = useState('');
   const [leaving, setLeaving] = useState<'forward' | 'back' | null>(null);
   const [phase, setPhase] = useState<'asking' | 'revealing'>('asking');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -95,8 +91,15 @@ export function Onboarding({
 
       window.setTimeout(
         () => {
-          if (redirectOnDone) router.push('/');
-          else router.refresh();
+          if (redirectOnDone) {
+            // push alone can serve the home feed from the client router cache —
+            // i.e. the OLD archive you came from. refresh() invalidates it so
+            // the newly built feed actually renders.
+            router.push('/');
+            router.refresh();
+          } else {
+            router.refresh();
+          }
         },
         reduced() ? 200 : REVEAL_MS,
       );
