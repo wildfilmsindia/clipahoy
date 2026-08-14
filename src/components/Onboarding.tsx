@@ -27,7 +27,7 @@ function reduced(): boolean {
   );
 }
 
-export type Vocabulary = { places: string[]; states: string[]; food: string[] };
+export type Vocabulary = { places: string[]; states: string[] };
 
 export function Onboarding({
   vocabulary,
@@ -59,15 +59,16 @@ export function Onboarding({
   const isLast = step === QUESTIONS.length - 1;
 
   /*
-   * Question 5 is intentionally poolless. It is the one most likely to name
-   * something outside the closed vocabulary, and autocomplete would nudge
-   * people back toward words the archive already knows.
+   * A question's own `suggest` list wins; otherwise the gazetteer-backed pool
+   * for its kind. `open` questions stay poolless on purpose — they are the
+   * ones most likely to name something outside the closed vocabulary, and
+   * autocomplete would nudge people back toward words the archive knows.
    */
   const pool = useMemo(() => {
     if (!question) return [];
+    if (question.suggest) return question.suggest;
     if (question.kind === 'place') return vocabulary.places;
-    if (question.kind === 'state') return vocabulary.states;
-    if (question.kind === 'food') return vocabulary.food;
+    if (question.kind === 'state' || question.kind === 'region') return vocabulary.states;
     return [];
   }, [question, vocabulary]);
 

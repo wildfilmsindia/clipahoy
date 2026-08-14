@@ -10,7 +10,7 @@ Last updated: 2026-08-14 · `archive-discovery` (ahead of `main`).
 ## What the product is
 
 A personalised front door to the Wilderness Films India archive. A first-time
-visitor answers five typed questions; the answers are resolved against the
+visitor answers a set of typed questions; the answers are resolved against the
 archive's own vocabulary and turned into a ranked feed. Search, subject and
 place browsing sit alongside it as the non-personalised way in.
 
@@ -19,7 +19,7 @@ Route map:
 | Route | What it does |
 |---|---|
 | `/` | Onboarding for a new visitor, personalised feed once answered, generic feed if skipped |
-| `/start` | The same five questions on a stable URL, pre-filled for re-tuning |
+| `/start` | The same questions on a stable URL, pre-filled for re-tuning |
 | `/search` | BM25 free-text search with subject and place facets |
 | `/subjects`, `/subject/[slug]` | Browse the 34-tag vocabulary |
 | `/places`, `/place/[slug]` | Browse by town and state |
@@ -27,31 +27,55 @@ Route map:
 
 ---
 
-## The five onboarding questions
+## The onboarding questions
 
-Answers are free text. `interpret.ts` resolves them against places, states,
-regions, terrains and the closed subject vocabulary; anything it does not
-recognise becomes a BM25 search term rather than being discarded.
+Fifteen questions, all free text. `interpret.ts` resolves answers against
+places, states, regions, terrains and the closed subject vocabulary; anything
+it does not recognise becomes a BM25 search term rather than being discarded.
 
 | # | Question | Kind | What it contributes |
 |---|---|---|---|
-| 01 | Where are your parents from? | place | Place or state signal. Autocompletes against the gazetteer, including historical names (Bombay, Calcutta, Madras…) and state short forms (Bengal, Orissa). |
-| 02 | What do you want to see? | open | The catch-all. No autocomplete on purpose — this is where something outside the vocabulary is most likely to be typed, and it reaches ranking through BM25 alone. |
-| 03 | What is your favourite food? | food | `street food` tag plus free text. Chips are limited to dishes with real footage behind them. |
-| 04 | Where did you go to school? | place | Place signal **plus an implied `school` tag** (1,341 clips), so "Shimla" here returns Bishop Cotton and St Bede's rather than the Mall road. |
-| 05 | What's your favourite Indian state? | state | State-level signal from the 73 gazetteer states. **The coarsest question in the set** — a whole state, not a town. |
+| 01 | Where did you grow up? | place | Place or state signal, autocompleted from the gazetteer including historical names (Bombay, Calcutta) and short forms (Bengal, Orissa) |
+| 02 | Where are your parents from? | place | Second place signal |
+| 03 | Where did you go to school? | place | Place **plus an implied `school` tag** (1,341 clips), so "Shimla" returns Bishop Cotton and St Bede's rather than the Mall road |
+| 04 | Which part of India would you most like to explore? | region | Compass region — the coarsest signal in the set |
+| 05 | What is your favourite food? | topic | `street food` tag plus free text |
+| 06 | What is your favourite animal? | topic | `wildlife` tag plus the named species as a search term |
+| 07 | What is your favourite place in India? | place | Third place signal |
+| 08 | What is your favourite festival? | topic | `festival` tag plus the named festival |
+| 09 | What is your favourite flower? | topic | `flowers` tag plus the named species |
+| 10 | What is your favourite bird? | topic | `birds` tag plus the named species |
+| 11 | What is your dream wildlife experience? | open | Unguided — no autocomplete, reaches ranking through BM25 alone |
+| 12 | What is your favourite season? | topic | `monsoon`/`snow` tags plus the season word |
+| 13 | What is your favourite Indian city? | place | Fourth place signal |
+| 14 | What is one Indian tradition you love? | open | Unguided |
+| 15 | What are you interested in — music, dance, cinema, sport, culture? | topic | `music`/`dance`/`sport` tags plus free text |
 
-Three of the five are place-type, which outweighs a single typed phrase. Two
-slots in the opening feed row are therefore reserved for whatever was typed in
-questions 2 and 3, rather than relying on the weights landing correctly.
+`kind` drives behaviour, not labelling: place and state do gazetteer lookups,
+region resolves compass words, `topic` is a narrow subject question, `open` is
+deliberately unguided. Landscape words are read out of the first four but not
+out of `topic` — "seafood" should not resolve to a coastline.
 
-Every example chip was tested through the recommender before shipping. Four
-have been dropped for returning nothing or the wrong thing: **Seafront roads**
-(led with a Casablanca corniche), **Tram lines** (resolved to `bus`, returned
-Delhi bus stops), **Steam engines** and **Fish curry** (13 clips — fell through
-to the generic feed).
+Autocomplete for the topical questions is a fixed list carried on the question
+itself in `taste.ts`; places and states come from the archive at request time.
 
----
+**Five of the fifteen are place-type**, which outweighs any single typed
+phrase, so two slots in the opening feed row are reserved for what was typed
+rather than relying on the weights landing correctly. Measured with all fifteen
+answered, the non-place signals reach 8 of the 9 opening cards.
+
+Every example chip is run through the recommender before shipping. All 60
+current chips return on-topic footage and none fall through to the generic
+feed. Four were dropped in earlier rounds for returning nothing or the wrong
+thing: **Seafront roads** (led with a Casablanca corniche), **Tram lines**
+(resolved to `bus`, returned Delhi bus stops), **Steam engines** and **Fish
+curry** (13 clips).
+
+**Known concern: length.** Fifteen questions is roughly three to four minutes,
+against the 30–60 seconds the flow was designed for. Every question is
+skippable and the recommender works from partial answers, but nobody has
+watched a real visitor go through all fifteen. Worth measuring before treating
+the count as settled.
 
 ## Search benchmark
 

@@ -313,8 +313,18 @@ export function summarise(rec: Recommendation): string | null {
 
   const stateNames = [...rec.signals.states];
 
+  /*
+   * Regions count too. "Which part of India would you most like to explore?"
+   * resolves to a compass region, and leaving it out meant answering "The
+   * Northeast" produced correct results under a summary line that mentioned
+   * nothing at all.
+   */
+  const regionNames = [...rec.signals.regions].map((r) =>
+    r === 'Northeast' ? 'the Northeast' : `${r.toLowerCase()} India`,
+  );
+
   // Place names keep their capitalisation; subjects are lower-case nouns.
-  const named = [...new Set([...placeNames, ...stateNames])].slice(0, 2);
+  const named = [...new Set([...placeNames, ...stateNames, ...regionNames])].slice(0, 3);
   const subjects = [...rec.signals.subjects].slice(0, 3);
 
   /*

@@ -451,12 +451,12 @@ function scan(text: string, kind: QuestionKind, out: Signals): boolean {
         const terrains = TERRAIN_WORDS[phrase];
         const subjects = SUBJECT_WORDS[phrase];
         /*
-         * Terrain applies to answers that name physical geography — the place
-         * and state questions, and the open one, where "the hills" or "the
-         * coast" is a perfectly ordinary thing to type. The food question does
-         * not pull terrain.
+         * Landscape words are read out of geography questions and the
+         * open-ended ones, where "the hills" or "the coast" is an ordinary
+         * thing to type. Not out of `topic`: those are narrow subject
+         * questions, and "seafood" should not resolve to a coastline.
          */
-        if (terrains && kind !== 'food') {
+        if (terrains && kind !== 'topic') {
           for (const t of terrains) out.terrains.add(t);
           hit = true;
         }
@@ -545,11 +545,7 @@ export function isEmpty(signals: Signals): boolean {
  * Small enough to ship as props (a few hundred short strings), which avoids an
  * API round-trip per keystroke and keeps suggestions in step with the data.
  */
-export function suggestionVocabulary(): {
-  places: string[];
-  states: string[];
-  food: string[];
-} {
+export function suggestionVocabulary(): { places: string[]; states: string[] } {
   const places = new Set<string>();
   const states = new Set<string>();
   for (const place of getPlaces()) {
@@ -568,27 +564,11 @@ export function suggestionVocabulary(): {
     places.add(alias.charAt(0).toUpperCase() + alias.slice(1));
   }
 
-  return {
-    places: [...places].sort(),
-
-    /*
-     * The state question is the coarsest signal in the set — a whole state
-     * rather than a town — so it gets its own pool drawn from the same 73
-     * state names the interpreter already resolves. Nothing new is invented.
-     */
-    states: [...states].sort(),
-
-    /*
-     * Counted in the corpus before being offered, like the place list. Only
-     * dishes with real footage behind them appear: sweets 1,005 clips,
-     * cooking 691, street food 475, biryani 127, thali 59, momos 48, samosa
-     * 44, paan 41, dosa 38. Anything thinner is left to free text rather than
-     * promised in a chip — "fish curry" (13 clips) was tested and dropped for
-     * falling through to the generic feed.
-     */
-    food: [
-      'Street food', 'Sweets', 'Biryani', 'Chaat', 'Thali', 'Momos',
-      'Samosa', 'Paan', 'Dosa', 'Mithai', 'Chai', 'Kebabs', 'Pakoda',
-    ],
-  };
+  /*
+   * Only the gazetteer-backed lists are built here. Food, animals, birds,
+   * flowers, seasons, festivals and interests are fixed sets that live on the
+   * questions themselves in taste.ts, so the client gets them without a second
+   * payload and they stay next to the copy they belong to.
+   */
+  return { places: [...places].sort(), states: [...states].sort() };
 }

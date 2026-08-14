@@ -9,12 +9,26 @@ import { search } from './search';
  * into pointing at footage that has left the archive.
  */
 export function backdropClips(): string[] {
+  /*
+   * One per question, loosely matching what each asks about, so the frame
+   * behind the field belongs with the question rather than cycling at random.
+   */
   return [
-    'Bombay street crowd city',
-    'village town houses',
-    'Himalaya coast valley sea',
-    'railway station platform train',
-    'festival procession market',
+    'village town houses street',
+    'family home courtyard village',
+    'school children classroom',
+    'Himalaya valley aerial landscape',
+    'street food stall market',
+    'elephant tiger wildlife forest',
+    'temple fort heritage city',
+    'festival procession crowd',
+    'flowers garden blossom',
+    'birds perched tree',
+    'tiger safari national park',
+    'monsoon rain clouds',
+    'city traffic crowd street',
+    'craft pottery handloom artisan',
+    'dance music performance stage',
   ]
     .map((q) => search(q, 1)[0]?.clip.id)
     .filter((id): id is string => !!id);
