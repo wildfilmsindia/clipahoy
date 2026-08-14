@@ -4,6 +4,8 @@
  *   npm run ingest                    # full crawl
  *   npm run ingest -- --limit 200     # first 200 videos
  *   npm run ingest -- --offline       # re-extract from cache, zero API calls
+ *   npm run ingest -- --since         # incremental: fetch only new uploads
+ *   npm run ingest -- --since --dry-run   # report what --since would add
  *
  * Requires YOUTUBE_API_KEY and YOUTUBE_CHANNEL_ID in .env.local.
  *
@@ -318,10 +320,136 @@ function reportPause(err: unknown, progress: string): void {
 
 /* ------------------------------------ run ---------------------------------- */
 
+/* --------------------------------- --since -------------------------------- */
+
+/**
+ * How many already-known videos in a row before we decide we have caught up.
+ *
+ * The uploads playlist is newest-first, so new videos are at the front and one
+ * hit ought to be enough. It is not: YouTube orders by publish time, and a
+ * video whose publish date is backdated, or which is unlisted then made public,
+ * lands mid-list. A margin of 100 (two full pages) costs at most two extra
+ * units and stops a single out-of-order item from ending the walk early.
+ */
+const SYNC_STOP_AFTER = 100;
+
+/** Every videoId already in the cache. Streamed — the file is ~400 MB. */
+async function knownVideoIds(): Promise<Set<string>> {
+  const ids = new Set<string>();
+  if (!existsSync(CACHE_FILE)) return ids;
+
+  const rl = readline.createInterface({
+    input: createReadStream(CACHE_FILE),
+    crlfDelay: Infinity,
+  });
+  for await (const line of rl) {
+    if (!line) continue;
+    try {
+      const id = (JSON.parse(line) as YouTubeItem)?.snippet?.resourceId?.videoId;
+      if (id) ids.add(id);
+    } catch {
+      // A truncated final line from an interrupted run is not worth aborting for.
+    }
+  }
+  return ids;
+}
+
+/**
+ * Fetch uploads published since the last run and append them.
+ *
+ * APPEND-ONLY, deliberately. This notices new videos; it does not notice
+ * videos that were deleted or made private after we cached them, because that
+ * would mean re-checking all 88k known ids rather than watching the front of
+ * one list. The index therefore drifts slowly as clips are taken down — an
+ * accepted limitation, recorded in STATUS.md.
+ */
+async function syncNewUploads(
+  key: string,
+  playlistId: string,
+  state: State,
+  budget: number,
+  dryRun: boolean,
+): Promise<{ added: number; pages: number; scanned: number }> {
+  process.stdout.write('Reading known video ids from cache… ');
+  const known = await knownVideoIds();
+  console.log(`${known.size.toLocaleString()} known.`);
+
+  let token: string | undefined;
+  let pages = 0;
+  let scanned = 0;
+  let added = 0;
+  let consecutiveKnown = 0;
+  const preview: string[] = [];
+
+  while (true) {
+    const page = await api<{ items: YouTubeItem[]; nextPageToken?: string }>(
+      'playlistItems',
+      {
+        part: 'snippet',
+        playlistId,
+        maxResults: '50',
+        key,
+        ...(token ? { pageToken: token } : {}),
+      },
+      budget,
+    );
+
+    pages++;
+    const fresh: YouTubeItem[] = [];
+
+    for (const item of page.items ?? []) {
+      scanned++;
+      const id = item.snippet?.resourceId?.videoId;
+      if (!id) continue;
+
+      if (known.has(id)) {
+        consecutiveKnown++;
+      } else {
+        consecutiveKnown = 0;
+        known.add(id); // a video can appear twice in one walk
+        fresh.push(item);
+        if (preview.length < 5) {
+          preview.push(`${item.snippet?.publishedAt ?? '?'}  ${(item.snippet?.title ?? '').slice(0, 56)}`);
+        }
+      }
+    }
+
+    if (fresh.length) {
+      added += fresh.length;
+      if (!dryRun) {
+        appendToCache(fresh);
+        state.count += fresh.length;
+        saveState(state);
+      }
+    }
+
+    process.stdout.write(
+      `\r${pages} pages · ${scanned} scanned · ${added} new · ${unitsUsed} units`,
+    );
+
+    if (consecutiveKnown >= SYNC_STOP_AFTER) break;
+    if (!page.nextPageToken) break;
+    token = page.nextPageToken;
+  }
+
+  console.log('');
+  console.log(
+    `Stopped after ${consecutiveKnown} consecutive known ids` +
+      (consecutiveKnown >= SYNC_STOP_AFTER ? ` (threshold ${SYNC_STOP_AFTER}).` : ' — reached end of playlist.'),
+  );
+  if (preview.length) {
+    console.log('Newest additions:');
+    for (const line of preview) console.log(`  ${line}`);
+  }
+  return { added, pages, scanned };
+}
+
 async function main() {
   const argv = process.argv;
   const offline = argv.includes('--offline');
   const playlistMode = argv.includes('--playlists');
+  const sinceMode = argv.includes('--since');
+  const dryRun = argv.includes('--dry-run');
   const limitArg = argv.indexOf('--limit');
   const limit = limitArg > -1 ? Number(argv[limitArg + 1]) : Infinity;
 
@@ -338,7 +466,32 @@ async function main() {
 
   const state = loadState();
 
-  if (playlistMode) {
+  if (sinceMode) {
+    const key = env('YOUTUBE_API_KEY');
+    const playlistId = await uploadsPlaylistId(key, env('YOUTUBE_CHANNEL_ID'));
+
+    console.log(`Uploads playlist: ${playlistId}`);
+    if (dryRun) console.log('DRY RUN — nothing will be written.\n');
+
+    try {
+      const { added, pages, scanned } = await syncNewUploads(key, playlistId, state, budget, dryRun);
+      console.log(
+        `\n${added} new video${added === 1 ? '' : 's'} from ${scanned} scanned ` +
+          `across ${pages} page${pages === 1 ? '' : 's'} · ${unitsUsed} quota units.`,
+      );
+      if (dryRun) {
+        console.log('Dry run: cache untouched, extraction skipped.');
+        return;
+      }
+      if (added === 0) {
+        console.log('Already up to date; skipping extraction.');
+        return;
+      }
+    } catch (err) {
+      reportPause(err, 'incremental sync');
+      return;
+    }
+  } else if (playlistMode) {
     const key = env('YOUTUBE_API_KEY');
     const channel = env('YOUTUBE_CHANNEL_ID');
 
