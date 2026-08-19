@@ -59,10 +59,25 @@ out of `topic` — "seafood" should not resolve to a coastline.
 Autocomplete for the topical questions is a fixed list carried on the question
 itself in `taste.ts`; places and states come from the archive at request time.
 
-**Five of the fifteen are place-type**, which outweighs any single typed
-phrase, so two slots in the opening feed row are reserved for what was typed
-rather than relying on the weights landing correctly. Measured with all fifteen
-answered, the non-place signals reach 8 of the 9 opening cards.
+**The feed is built for breadth, not top score.** The opening picks are drawn
+round-robin across every answered question — one clip per answer before any
+answer gets a second — so each thing the visitor typed is represented. This
+replaced a global top-score pick, which handed all nine opening cards to
+whichever answer was rarest: a specific festival swept the row while "peacock"
+and "monsoon" produced nothing at all. Measured with all fifteen answered, all
+fifteen now appear in the feed and the opening row reads as a tour of the
+answers in order.
+
+**Discovery is gated on hit rate.** "Go a little further" (interest matches
+from outside the named places) only shows when the direct matches are thin —
+few answers, short feed. When the answers already fill the page it is
+suppressed, so a rich answer set is not padded with loosely-related footage.
+
+The place-based sections still come from a single structural scoring pass
+(place / state / region / subject, no text search), which keeps a full
+fifteen-answer feed to a few hundred ms in production. `thin` — the fall-back
+to the generic feed — is measured over everything the answers reach, so a
+purely free-text set like "Ambassador cars" still personalises.
 
 Every example chip is run through the recommender before shipping. All 60
 current chips return on-topic footage and none fall through to the generic

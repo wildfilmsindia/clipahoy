@@ -520,8 +520,10 @@ export function interpret(answers: Answers): Signals {
   }
 
   // Deduplicate while keeping order. Capped because every term costs one pass
-  // over the BM25 index, and matched phrases now contribute terms too.
-  out.terms = [...new Set(out.terms)].slice(0, 8);
+  // over the BM25 index — but the cap has to clear the question count, or the
+  // later questions' words are silently dropped. At 8 (set when there were
+  // five questions) a fifteen-question run lost monsoon, handloom and more.
+  out.terms = [...new Set(out.terms)].slice(0, 24);
   out.understood = [...new Set(out.understood)];
   out.spoken = [...new Set(out.spoken)];
   return out;
