@@ -3,7 +3,7 @@
 A single place to read where the product stands. Not an audit: AUDIT.md holds
 the investigation and its evidence. This is what is true today.
 
-Last updated: 2026-08-14 · `archive-discovery` (ahead of `main`).
+Last updated: 2026-08-19 · `archive-discovery` (ahead of `main`).
 
 ---
 
@@ -94,7 +94,7 @@ the count as settled.
 
 ## Search benchmark
 
-**97.0% precision@20** across 25 fixed queries.
+**99.4% precision@20** across 25 fixed queries.
 
 `scripts/benchmark-queries.json` holds the queries and their relevance rules;
 `npx tsx --conditions=react-server scripts/benchmark.ts` re-scores them. The
@@ -111,6 +111,10 @@ prose. It does **not** measure whether the footage visually shows the thing —
 no automated rule can. 23 of the 25 queries sit at 100%; the mean is dragged
 down almost entirely by one query.
 
+The number rose from 97.0% when the archive grew from 73,525 to 108,149 clips:
+more real footage dilutes the collisions. "Meenakshi" went 30% → 85% because
+the enlarged index finally holds more temple footage than politician mentions.
+
 Two changes were tested and **not shipped** because the benchmark did not move:
 BM25 `k1` × `b` across sixteen combinations, and title weight across five
 values — all scored identically. The constants are env-overridable
@@ -123,15 +127,15 @@ values — all scored identically. The constants are env-overridable
 | | |
 |---|---|
 | Channel total (`channels.list` `videoCount`) | 126,221 |
-| Rows in the crawl cache | 126,648 |
-| Distinct videos crawled | 88,283 (70% of the channel) |
-| Clips indexed and reachable | **73,525** (83.3% of distinct) |
-| Clips with a place | 58,473 (79.5%) |
-| Clips with at least one subject tag | 61,542 (83.7%) |
-| Clips with a year | ~27.3% — see caveat below |
-| Gazetteer places | 231 (185 India, 46 outside) |
-| States represented | 73 |
-| Places browsable in the UI (town-level, ≥20 clips) | 123 |
+| Rows in the crawl cache | 165,239 |
+| Distinct videos held | 126,874 (**~100% of the channel**) |
+| Clips indexed and reachable | **108,149** (85.2% of distinct) |
+| Clips with a place | 86,583 (80.1%) |
+| Clips with at least one subject tag | 91,078 (84.2%) |
+| Clips with a year | 32,952 (30.5%) — see caveat below |
+| Gazetteer places | 233 (186 India, 47 outside) |
+| States represented | 74 |
+| Places browsable in the UI (town-level, ≥20 clips) | 133 |
 | Subject vocabulary | 34 tags, closed |
 
 A clip is admitted if it has a place **or** a subject. The excluded remainder
@@ -140,9 +144,27 @@ placeholders, which is the only content rejection rule still active.
 
 Row count exceeds distinct videos because a video legitimately appears in
 several playlists; dedup is by `snippet.resourceId.videoId` and first
-occurrence wins. Verified 2026-08-14 against `channels.list`, after a Studio
-Analytics screenshot scoped to "last 28 days" suggested a much smaller channel:
-the crawl and index were correct, the screenshot was filtered.
+occurrence wins. Verified against `channels.list`, after a Studio Analytics
+screenshot scoped to "last 28 days" suggested a much smaller channel: the crawl
+and index were correct, the screenshot was filtered.
+
+**The API-unreachable third is closed (2026-08-19).** The uploads playlist caps
+at 20,000 items and `search.list` does not expose a back catalogue at all, so
+crawling alone plateaued at 88,283 distinct videos — 70% of the channel.
+Discovery was the only thing ever blocked. Given a Studio export of 125,272
+title+id rows, `videos.list` fetched the 38,591 unseen videos at 50 ids per
+quota unit: **772 units, zero unavailable, ~5 minutes**. The index went
+73,525 → 108,149 clips.
+
+    python3 scripts/parse-studio-export.py <export.xlsx>   # build the id list
+    npm run ingest -- --backfill --dry-run                 # report, write nothing
+    npm run ingest -- --backfill                           # fetch and re-extract
+
+Backfilled records carry title, description and publishedAt but **no
+`playlistTitle`** — they were not found inside a curated playlist, so the
+strongest place signal is unavailable for them and they rely on title and
+prose. Re-run the parser whenever a fresh export arrives; it only fetches ids
+the cache does not already hold.
 
 ## Keeping it current
 
@@ -183,24 +205,28 @@ Ordered roughly by how much it would matter to fix.
    train has `placeId: null`, and `isIndian()` treats null as Indian because
    genuinely unplaceable wildlife footage also has null. Such clips can rank in
    an India-only feed.
-5. **Sync drift from takedowns.** `--since` is append-only, so a video deleted
-   or made private after it was cached stays in the index until a full
-   re-extract. Detecting removals means re-checking every known id (~1,770
-   units per pass at 50 ids/unit), not watching the front of one list. Accepted
-   for now; revisit if dead clips become visible in the product.
-6. **14,290 crawled videos are unreachable.** They carry neither a place nor a
-   subject, so nothing in the product can surface them: 88,283 distinct videos
-   crawled, 73,525 indexed, 468 rejected as placeholders. Not a bug, but it
-   bounds what the archive can answer.
+5. **Sync drift from takedowns — now measured at 1,602 clips.** `--since` and
+   `--backfill` are both append-only, so a video deleted or made private after
+   caching stays in the index. The Studio export makes this countable for the
+   first time: 1,602 cached ids are absent from a 125,272-row export of the
+   live channel. That is 1.3% of the index pointing at videos that may no
+   longer play. Reconciling means re-checking every known id (~2,540 units per
+   pass at 50 ids/unit) — cheap enough now that the export gives an exact
+   target list. Worth doing next.
+6. **18,257 held videos are unreachable.** They carry neither a place nor a
+   subject, so nothing in the product can surface them: 126,874 distinct videos
+   held, 108,149 indexed, 468 rejected as placeholders. Not a bug, but it bounds
+   what the archive can answer.
 
 ### Ranking and search
 
-7. **Meenakshi stays at 30% p@20, by decision.** Of 53 clips mentioning it, 29
-   are the politician Meenakshi Lekhi and 2 are the temple. Excluding Lekhi
-   raises `/search` but starves the personalised feed below its threshold and
-   drops it to generic. Archive composition, not a ranking defect. Only the
-   actress (Seshadri, both spellings) and Kailash Kher are excluded, and only
-   for the bare one-word query.
+7. **Meenakshi improved to 85% p@20 on its own.** It sat at 30% when the
+   archive was 73,525 clips: of 53 mentions, 29 were the politician Meenakshi
+   Lekhi and 2 the temple. The backfill added enough real temple footage to
+   outweigh the collision without any code change — a reminder that some
+   ranking problems are corpus-size problems. The narrow exclusions (the
+   actress Seshadri, both spellings, and Kailash Kher, bare one-word query
+   only) remain.
 8. **Same-name collisions are handled case by case, not systematically.** Two
    gazetteer rows were removed outright (Kailash → the singer; Hong Kong → a
    stuntman's biography) and two names are filtered at search time. There is no
@@ -216,9 +242,11 @@ Ordered roughly by how much it would matter to fix.
 
 ### Product and platform
 
-11. **The channel's 20,000-item API ceiling.** The uploads playlist caps at
-    20,000 regardless of quota; coverage beyond that came from crawling 1,253
-    individual playlists. A platform limit, not something to engineer around.
+11. **The channel's 20,000-item API ceiling still applies to discovery.** The
+    uploads playlist caps at 20,000 regardless of quota, and `search.list`
+    returns nothing useful. Crawling plateaued at 70% of the channel; the rest
+    came from a Studio export plus `--backfill`. Any future gap is closed the
+    same way — a platform limit worked around, not engineered away.
 12. **The mobile no-autofocus guard is unverified on a real device.** The
     `(pointer: fine)` check is correct, but the preview browser is desktop
     Chrome at a phone width and always reports `fine`, so the touch path has

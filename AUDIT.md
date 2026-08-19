@@ -47,17 +47,28 @@ metadata carries.
 1,249 individual playlists (uncapped), at ~2,100 units of the 10,000/day free tier. The final 30% is **not**
 reachable by any method available here — see the correction below.
 
-> **⚠️ CORRECTED.** This section originally stated that the remaining 30% could be
+> **⚠️ CORRECTED, THEN RESOLVED.**
+>
+> *Corrected:* this section originally stated that the remaining 30% could be
 > reached by `search.list` date-windowing at ~312,000 units (≈31 days of free
 > quota). **That is wrong, and the cost estimate describes a method that does not
 > work at all.** Tested directly against the channel: `search.list` scoped to this
 > channel returns `totalResults: 90` for the entire channel, and **0 for every
 > date window tried**. YouTube's Search API does not expose a channel's back
 > catalogue this way regardless of how the window is sliced, so no amount of
-> quota buys the missing videos. The only routes left are a quota/partner
-> arrangement with Google, or the rights-holder supplying their own catalogue.
-> The 20,000-item uploads cap and the 1,249-playlist workaround above are both
-> still accurate.
+> quota buys the missing videos.
+>
+> *Resolved (2026-08-19):* the rights-holder supplied a YouTube Studio export —
+> 125,272 rows of title + video id. **Discovery was the only thing ever blocked;
+> fetching was always cheap.** `videos.list` takes 50 ids per quota unit, so the
+> 38,591 videos this crawl had never seen cost **772 units — under 8% of one
+> day's free tier** — and returned full snippets with descriptions averaging
+> ~2,000 characters. Zero were unavailable. The index went from 73,525 clips to
+> **108,149**. See `scripts/parse-studio-export.py` and
+> `npm run ingest -- --backfill`.
+>
+> The 20,000-item uploads cap and the 1,249-playlist workaround above remain
+> accurate, and still bound what the API alone can discover.
 
 ---
 

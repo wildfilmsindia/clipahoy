@@ -6,6 +6,7 @@
  *   npm run ingest -- --offline       # re-extract from cache, zero API calls
  *   npm run ingest -- --since         # incremental: fetch only new uploads
  *   npm run ingest -- --since --dry-run   # report what --since would add
+ *   npm run ingest -- --backfill      # fetch ids listed in data/backfill/missing-ids.jsonl
  *
  * Requires YOUTUBE_API_KEY and YOUTUBE_CHANNEL_ID in .env.local.
  *
@@ -89,6 +90,12 @@ type YouTubeItem = {
 
 type NamedEntry = GazetteerEntry & { name: string };
 
+/** What videos.list returns — `id` at the top level, no resourceId. */
+type VideoResource = {
+  id: string;
+  snippet: { title?: string; description?: string; publishedAt?: string };
+};
+
 /**
  * Only the resume token and a count live in the state file. The videos
  * themselves are appended to a JSONL cache, one per line.
@@ -103,6 +110,8 @@ type State = {
   count: number;
   /** Playlist ids already fully crawled, so --playlists can resume. */
   donePlaylists?: string[];
+  /** How many ids of the backfill list are done, so --backfill can resume. */
+  backfillCursor?: number;
 };
 
 /* ----------------------------------- env ---------------------------------- */
@@ -444,11 +453,110 @@ async function syncNewUploads(
   return { added, pages, scanned };
 }
 
+/* -------------------------------- --backfill ------------------------------ */
+
+const BACKFILL_FILE = path.join(DATA_DIR, 'backfill', 'missing-ids.jsonl');
+
+/**
+ * Fetch videos by id, for ids this crawl could never reach.
+ *
+ * The uploads playlist caps at 20,000 items and search.list does not expose a
+ * channel's back catalogue at all (AUDIT.md §A), so roughly a third of the
+ * channel was undiscoverable through the API. Discovery is the only thing that
+ * was ever blocked — fetching is cheap. Given a list of ids from the
+ * rights-holder's own Studio export, videos.list returns full snippets at 50
+ * ids per quota unit.
+ *
+ * Records are written in the same shape the playlist crawl produces so the
+ * extractor cannot tell the difference. The one field they lack is
+ * `playlistTitle`: these videos were not found inside a curated playlist, so
+ * the strongest place signal is unavailable for them and they rely on title
+ * and description instead.
+ */
+async function backfillByIds(
+  key: string,
+  state: State,
+  budget: number,
+  dryRun: boolean,
+): Promise<{ added: number; missing: number; batches: number }> {
+  if (!existsSync(BACKFILL_FILE)) {
+    throw new Error(`No ${BACKFILL_FILE}. Build it from the Studio export first.`);
+  }
+
+  const wanted: string[] = [];
+  for (const line of readFileSync(BACKFILL_FILE, 'utf8').split('\n')) {
+    if (!line.trim()) continue;
+    try {
+      const id = (JSON.parse(line) as { id?: string }).id;
+      if (id) wanted.push(id);
+    } catch {
+      // A hand-edited list is allowed to have a bad line.
+    }
+  }
+
+  // Skip anything already cached, so a re-run after a partial pass is cheap.
+  process.stdout.write('Reading known video ids from cache… ');
+  const known = await knownVideoIds();
+  console.log(`${known.size.toLocaleString()} known.`);
+
+  const todo = wanted.filter((id) => !known.has(id));
+  const start = Math.min(state.backfillCursor ?? 0, todo.length);
+  console.log(
+    `${wanted.length.toLocaleString()} listed · ${todo.length.toLocaleString()} still to fetch` +
+      (start ? ` · resuming at ${start.toLocaleString()}` : '') +
+      ` · ~${Math.ceil((todo.length - start) / 50).toLocaleString()} units needed`,
+  );
+  if (dryRun) return { added: 0, missing: 0, batches: 0 };
+
+  let added = 0;
+  let missing = 0;
+  let batches = 0;
+  const began = Date.now();
+
+  for (let i = start; i < todo.length; i += 50) {
+    const batch = todo.slice(i, i + 50);
+    const page = await api<{ items: VideoResource[] }>(
+      'videos',
+      { part: 'snippet', id: batch.join(','), maxResults: '50', key },
+      budget,
+    );
+
+    const items: YouTubeItem[] = (page.items ?? []).map((v) => ({
+      snippet: {
+        title: v.snippet.title ?? '',
+        description: v.snippet.description ?? '',
+        publishedAt: v.snippet.publishedAt ?? '',
+        resourceId: { videoId: v.id },
+      },
+    }));
+
+    // videos.list silently omits ids that are deleted, private or not ours.
+    missing += batch.length - items.length;
+
+    appendToCache(items);
+    added += items.length;
+    state.count += items.length;
+    state.backfillCursor = i + 50;
+    saveState(state);
+
+    batches++;
+    const mins = (Date.now() - began) / 60000;
+    process.stdout.write(
+      `\r${added.toLocaleString()} fetched · ${missing.toLocaleString()} unavailable · ` +
+        `${unitsUsed} units · ${mins > 0 ? Math.round(added / mins).toLocaleString() : 0}/min`,
+    );
+  }
+
+  console.log('');
+  return { added, missing, batches };
+}
+
 async function main() {
   const argv = process.argv;
   const offline = argv.includes('--offline');
   const playlistMode = argv.includes('--playlists');
   const sinceMode = argv.includes('--since');
+  const backfillMode = argv.includes('--backfill');
   const dryRun = argv.includes('--dry-run');
   const limitArg = argv.indexOf('--limit');
   const limit = limitArg > -1 ? Number(argv[limitArg + 1]) : Infinity;
@@ -466,7 +574,29 @@ async function main() {
 
   const state = loadState();
 
-  if (sinceMode) {
+  if (backfillMode) {
+    const key = env('YOUTUBE_API_KEY');
+    if (dryRun) console.log('DRY RUN — nothing will be written.\n');
+
+    try {
+      const { added, missing, batches } = await backfillByIds(key, state, budget, dryRun);
+      if (dryRun) {
+        console.log('Dry run: cache untouched, extraction skipped.');
+        return;
+      }
+      console.log(
+        `\n${added.toLocaleString()} videos fetched across ${batches.toLocaleString()} batches · ` +
+          `${missing.toLocaleString()} unavailable · ${unitsUsed} quota units.`,
+      );
+      if (added === 0) {
+        console.log('Nothing new; skipping extraction.');
+        return;
+      }
+    } catch (err) {
+      reportPause(err, 'backfill');
+      return;
+    }
+  } else if (sinceMode) {
     const key = env('YOUTUBE_API_KEY');
     const playlistId = await uploadsPlaylistId(key, env('YOUTUBE_CHANNEL_ID'));
 

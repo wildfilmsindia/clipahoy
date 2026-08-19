@@ -50,3 +50,7 @@ next-env.d.ts
 /data/.ingest-state.json
 /data/index.json
 /data/unmatched.json
+
+# Backfill working files, derived from a YouTube Studio export.
+# Regenerate with: python3 scripts/parse-studio-export.py <export.xlsx>
+/data/backfill/
