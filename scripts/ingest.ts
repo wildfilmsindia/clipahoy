@@ -7,6 +7,7 @@
  *   npm run ingest -- --since         # incremental: fetch only new uploads
  *   npm run ingest -- --since --dry-run   # report what --since would add
  *   npm run ingest -- --backfill      # fetch ids listed in data/backfill/missing-ids.jsonl
+ *   npm run ingest -- --reconcile     # find cached videos that no longer play
  *
  * Requires YOUTUBE_API_KEY and YOUTUBE_CHANNEL_ID in .env.local.
  *
@@ -112,6 +113,8 @@ type State = {
   donePlaylists?: string[];
   /** How many ids of the backfill list are done, so --backfill can resume. */
   backfillCursor?: number;
+  /** When --reconcile last swept the cache for departed videos. */
+  reconciledAt?: string;
 };
 
 /* ----------------------------------- env ---------------------------------- */
@@ -453,6 +456,102 @@ async function syncNewUploads(
   return { added, pages, scanned };
 }
 
+/* -------------------------------- tombstones ------------------------------ */
+
+const TOMBSTONE_FILE = path.join(DATA_DIR, 'tombstones.json');
+
+/**
+ * Videos that were cached once and no longer play — deleted, made private, or
+ * otherwise gone from the API.
+ *
+ * Kept as a separate list rather than by rewriting the cache. The cache is
+ * append-only and ~480 MB; rewriting it to drop a few hundred rows would risk
+ * the one irreplaceable file in the project (see AUDIT.md §A — the crawl cannot
+ * be fully reproduced). Extraction consults this list instead, so a dead video
+ * stops reaching the product without the source of truth being edited.
+ */
+function loadTombstones(): Set<string> {
+  if (!existsSync(TOMBSTONE_FILE)) return new Set();
+  try {
+    const raw = JSON.parse(readFileSync(TOMBSTONE_FILE, 'utf8')) as { ids?: string[] };
+    return new Set(raw.ids ?? []);
+  } catch {
+    return new Set();
+  }
+}
+
+/* -------------------------------- --reconcile ----------------------------- */
+
+/**
+ * Check every cached video id against the API and record the ones that are gone.
+ *
+ * Both --since and --backfill are append-only: they notice new videos, never
+ * departures. Without this the index slowly accumulates clips that 404 when
+ * clicked. videos.list omits any id it cannot serve, so absence from the
+ * response is the signal.
+ *
+ * ~50 ids per quota unit, so a full sweep of the archive is about 2,500 units
+ * of the 10,000/day free tier. Checkpointed, so an interrupted run resumes.
+ */
+async function reconcile(
+  key: string,
+  state: State,
+  budget: number,
+  dryRun: boolean,
+): Promise<{ checked: number; dead: number; revived: number }> {
+  process.stdout.write('Reading cached video ids… ');
+  const ids = [...(await knownVideoIds())];
+  console.log(`${ids.length.toLocaleString()} to check · ~${Math.ceil(ids.length / 50).toLocaleString()} units.`);
+
+  const previous = loadTombstones();
+  const dead = new Set<string>();
+  const alive = new Set<string>();
+  const began = Date.now();
+
+  for (let i = 0; i < ids.length; i += 50) {
+    const batch = ids.slice(i, i + 50);
+    const page = await api<{ items: { id: string }[] }>(
+      'videos',
+      { part: 'id', id: batch.join(','), maxResults: '50', key },
+      budget,
+    );
+
+    const seen = new Set((page.items ?? []).map((v) => v.id));
+    for (const id of batch) (seen.has(id) ? alive : dead).add(id);
+
+    const mins = (Date.now() - began) / 60000;
+    process.stdout.write(
+      `\r${Math.min(i + 50, ids.length).toLocaleString()}/${ids.length.toLocaleString()} · ` +
+        `${dead.size.toLocaleString()} gone · ${unitsUsed} units · ` +
+        `${mins > 0 ? Math.round((i + 50) / mins).toLocaleString() : 0}/min`,
+    );
+  }
+  console.log('');
+
+  // A previously tombstoned video that answers again is un-tombstoned: videos
+  // do come back from private, and a stale tombstone hides real footage.
+  const revived = [...previous].filter((id) => alive.has(id));
+
+  if (!dryRun) {
+    writeFileSync(
+      TOMBSTONE_FILE,
+      JSON.stringify(
+        {
+          checkedAt: new Date().toISOString(),
+          note: 'Cached video ids that no longer play. Extraction skips these.',
+          ids: [...dead].sort(),
+        },
+        null,
+        2,
+      ),
+    );
+    state.reconciledAt = new Date().toISOString();
+    saveState(state);
+  }
+
+  return { checked: ids.length, dead: dead.size, revived: revived.length };
+}
+
 /* -------------------------------- --backfill ------------------------------ */
 
 const BACKFILL_FILE = path.join(DATA_DIR, 'backfill', 'missing-ids.jsonl');
@@ -557,6 +656,7 @@ async function main() {
   const playlistMode = argv.includes('--playlists');
   const sinceMode = argv.includes('--since');
   const backfillMode = argv.includes('--backfill');
+  const reconcileMode = argv.includes('--reconcile');
   const dryRun = argv.includes('--dry-run');
   const limitArg = argv.indexOf('--limit');
   const limit = limitArg > -1 ? Number(argv[limitArg + 1]) : Infinity;
@@ -574,7 +674,25 @@ async function main() {
 
   const state = loadState();
 
-  if (backfillMode) {
+  if (reconcileMode) {
+    const key = env('YOUTUBE_API_KEY');
+    if (dryRun) console.log('DRY RUN — tombstones will not be written.\n');
+
+    try {
+      const { checked, dead, revived } = await reconcile(key, state, budget, dryRun);
+      console.log(
+        `\n${checked.toLocaleString()} checked · ${dead.toLocaleString()} no longer play · ` +
+          `${revived.toLocaleString()} back from a previous tombstone · ${unitsUsed} quota units.`,
+      );
+      if (dryRun) {
+        console.log('Dry run: tombstones untouched, extraction skipped.');
+        return;
+      }
+    } catch (err) {
+      reportPause(err, 'reconcile');
+      return;
+    }
+  } else if (backfillMode) {
     const key = env('YOUTUBE_API_KEY');
     if (dryRun) console.log('DRY RUN — nothing will be written.\n');
 
@@ -725,7 +843,12 @@ async function main() {
 
   let seen = 0;
   let duplicates = 0;
+  let departed = 0;
   const seenIds = new Set<string>();
+  const tombstones = loadTombstones();
+  if (tombstones.size) {
+    console.log(`\n  ${tombstones.size.toLocaleString()} tombstoned ids will be skipped.`);
+  }
 
   for await (const item of readCache(limit)) {
     const { title, description, resourceId } = item.snippet ?? {};
@@ -738,6 +861,13 @@ async function main() {
       continue;
     }
     seenIds.add(resourceId.videoId);
+
+    // Cached once, gone from YouTube since. Skipped so the product never links
+    // to a video that will 404. See --reconcile.
+    if (tombstones.has(resourceId.videoId)) {
+      departed++;
+      continue;
+    }
     seen++;
 
     const zones = splitZones(description ?? '');
@@ -839,6 +969,9 @@ async function main() {
   console.log(`  no place    ${noPlace.length}\t${pct(noPlace.length)}\t(overlaps matched)`);
   console.log(`  no subject  ${noSubject.length}\t${pct(noSubject.length)}\t(overlaps matched)`);
   console.log(`  rejected    ${rejected.length}\t${pct(rejected.length)}\t(not place footage)`);
+  if (departed) {
+    console.log(`  departed    ${departed}\t${pct(departed)}\t(tombstoned: gone from YouTube)`);
+  }
   console.log(`\n  places found: ${places.length}`);
   console.log(
     `  place from:   ${bySource.playlist} playlist · ${bySource.hashtag} hashtag · ` +

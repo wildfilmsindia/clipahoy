@@ -129,9 +129,10 @@ values — all scored identically. The constants are env-overridable
 | Channel total (`channels.list` `videoCount`) | 126,221 |
 | Rows in the crawl cache | 165,239 |
 | Distinct videos held | 126,874 (**~100% of the channel**) |
-| Clips indexed and reachable | **108,149** (85.2% of distinct) |
-| Clips with a place | 86,583 (80.1%) |
-| Clips with at least one subject tag | 91,078 (84.2%) |
+| — of those, confirmed gone from YouTube | 457 (tombstoned, excluded) |
+| Clips indexed and reachable | **108,148** (85.5% of live) |
+| Clips with a place | 86,582 (80.1%) |
+| Clips with at least one subject tag | 91,077 (84.2%) |
 | Clips with a year | 32,952 (30.5%) — see caveat below |
 | Gazetteer places | 233 (186 India, 47 outside) |
 | States represented | 74 |
@@ -176,12 +177,17 @@ already-known ids. The channel uploads roughly 17–18 videos a day. Measured
 costs: **6 quota units** to catch up a week (124 videos), **3 units** when
 already current, against a 10,000/day free tier.
 
-**Append-only, deliberately.** It notices new videos. It does not notice videos
-deleted or made private after caching, because that needs re-checking all 88k
-known ids rather than watching the front of one list. The index therefore
-drifts slowly as clips come down — an accepted limitation, listed below.
-Reaching the ~38,000 videos beyond the 20,000-item uploads window is a separate
-problem this does not address; see AUDIT.md §A.
+**Append-only, deliberately** — `--since` notices arrivals, never departures.
+Departures are handled separately:
+
+    npm run ingest -- --reconcile             # check every cached id, tombstone the gone
+    npm run ingest -- --reconcile --dry-run   # report, write nothing
+
+That sweeps all 126,874 ids at 50 per quota unit (**2,538 units, ~11 minutes**)
+and writes `data/tombstones.json`. Extraction skips tombstoned ids, so a
+deleted or privated video stops reaching the product without the append-only
+cache ever being rewritten — it is ~480 MB and, per AUDIT.md §A, cannot be
+fully reproduced. A tombstoned id that answers again is automatically revived.
 
 ---
 
@@ -205,14 +211,23 @@ Ordered roughly by how much it would matter to fix.
    train has `placeId: null`, and `isIndian()` treats null as Indian because
    genuinely unplaceable wildlife footage also has null. Such clips can rank in
    an India-only feed.
-5. **Sync drift from takedowns — now measured at 1,602 clips.** `--since` and
-   `--backfill` are both append-only, so a video deleted or made private after
-   caching stays in the index. The Studio export makes this countable for the
-   first time: 1,602 cached ids are absent from a 125,272-row export of the
-   live channel. That is 1.3% of the index pointing at videos that may no
-   longer play. Reconciling means re-checking every known id (~2,540 units per
-   pass at 50 ids/unit) — cheap enough now that the export gives an exact
-   target list. Worth doing next.
+5. **Sync drift from takedowns — reconciled 2026-08-19, now a routine.**
+   `--since` and `--backfill` are append-only, so departures were invisible.
+   `npm run ingest -- --reconcile` now checks every cached id against the API
+   and writes `data/tombstones.json`; extraction skips those ids, so a
+   departed video stops reaching the product. Full sweep: 126,874 ids, **2,538
+   quota units, ~11 minutes, 457 gone**. Only one of the 457 was still
+   user-visible — the rest had already failed extraction — so the index went
+   108,149 → 108,148. Re-run whenever it matters; there is no automatic
+   trigger.
+
+   **A note on the earlier estimate.** This was previously recorded as "1,602
+   clips may no longer play", taken from ids absent from the Studio export.
+   That was wrong by roughly 3×: checked against the API, **1,145 of those
+   1,602 are alive** — the export has gaps and is not a reliable list of what
+   is live. Only 457 were genuinely gone, and the full sweep confirmed there
+   are no departed videos *inside* the export. Absence from an export is not
+   evidence of deletion.
 6. **18,257 held videos are unreachable.** They carry neither a place nor a
    subject, so nothing in the product can surface them: 126,874 distinct videos
    held, 108,149 indexed, 468 rejected as placeholders. Not a bug, but it bounds
