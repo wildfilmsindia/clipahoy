@@ -48,6 +48,7 @@ export function Onboarding({
   const [value, setValue] = useState('');
   const [leaving, setLeaving] = useState<'forward' | 'back' | null>(null);
   const [phase, setPhase] = useState<'asking' | 'revealing'>('asking');
+  const [revealPersonal, setRevealPersonal] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
@@ -86,6 +87,7 @@ export function Onboarding({
 
   const commit = useCallback(
     (final: Answers) => {
+      setRevealPersonal(Object.values(final).some((v) => v.trim()));
       setPhase('revealing');
       document.cookie = `${TASTE_COOKIE}=${encodeTaste(final)}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
 
@@ -162,6 +164,12 @@ export function Onboarding({
     commit(next);
   }, [answers, commit, leaving, phase, question, value]);
 
+  /** Leave the questions unanswered and go straight to the generic feed. */
+  const browseInstead = useCallback(() => {
+    if (leaving || phase !== 'asking') return;
+    commit({});
+  }, [commit, leaving, phase]);
+
   /** Answers banked so far, plus whatever is in the field right now. */
   const answeredCount =
     Object.values(answers).filter((v) => v.trim()).length +
@@ -203,7 +211,7 @@ export function Onboarding({
     if (window.matchMedia('(pointer: fine)').matches) inputRef.current?.focus();
   }, [step, leaving, phase]);
 
-  if (phase === 'revealing') return <Reveal />;
+  if (phase === 'revealing') return <Reveal personal={revealPersonal} />;
   if (!question) return null;
 
   const progress = ((step + 1) / QUESTIONS.length) * 100;
@@ -385,6 +393,25 @@ export function Onboarding({
             {step + 1} / {QUESTIONS.length}
           </span>
         </div>
+
+        {/*
+          A way out that is not "answer fifteen questions".
+
+          For a first-time visitor `/` IS this flow, so without an explicit
+          escape there was no route to the rest of the site — the logo leads
+          back here, and skipping every question one at a time is not a
+          browsing experience. Writing an empty answer set marks them as asked
+          and lands them on the generic feed.
+        */}
+        <p className="mt-6 text-[12.5px] text-faint">
+          <button
+            type="button"
+            onClick={browseInstead}
+            className="underline decoration-line underline-offset-4 transition-colors hover:text-mute hover:decoration-mute"
+          >
+            Skip all this and just browse the archive
+          </button>
+        </p>
       </div>
     </section>
   );
@@ -393,7 +420,14 @@ export function Onboarding({
 /* ----------------------------------------------------------------- reveal */
 
 /** The payoff beat between the last answer and the feed. */
-function Reveal() {
+/**
+ * The beat between the last answer and the feed.
+ *
+ * Says something different when nothing was answered: claiming to have "a
+ * sense of your India" from an empty form would be a small lie, and the page
+ * that follows is the whole archive rather than a personal one.
+ */
+function Reveal({ personal }: { personal: boolean }) {
   return (
     <div
       className="grid min-h-[calc(100dvh-4rem)] place-items-center px-6 text-center"
@@ -401,9 +435,11 @@ function Reveal() {
       aria-live="polite"
     >
       <div>
-        <p className="eyebrow reveal-a">We&rsquo;ve got a sense of your India.</p>
+        <p className="eyebrow reveal-a">
+          {personal ? 'We\u2019ve got a sense of your India.' : 'No questions, then.'}
+        </p>
         <p className="reveal-b mt-5 font-display text-[30px] leading-tight font-light sm:text-[44px]">
-          Your archive is ready.
+          {personal ? 'Your archive is ready.' : 'Here is the whole archive.'}
         </p>
       </div>
     </div>

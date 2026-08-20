@@ -109,6 +109,19 @@ thing: **Seafront roads** (led with a Casablanca corniche), **Tram lines**
 (resolved to `bus`, returned Delhi bus stops), **Steam engines** and **Fish
 curry** (13 clips).
 
+**There is a way out of the questions.** For a first-time visitor `/` *is*
+the flow, so the logo leads back to it and there was no route to the rest of
+the site short of skipping every question one at a time. "Skip all this and
+just browse the archive" writes an empty answer set and lands on the generic
+feed. The reveal says something different when nothing was answered — claiming
+"a sense of your India" from an empty form would be a small lie.
+
+**Playlist rows are swipeable on a phone.** Five capped picks in a 2-column
+grid took three vertical screens per answer at 375px, so a long archive was an
+enormous scroll. Below `lg` a row is a snap-scrolling rail that bleeds to the
+screen edge, so a cut-off card advertises the gesture; above `lg` it is an
+ordinary row of five and the horizontal scrolling disappears.
+
 **You can stop at any point.** Once at least one question is answered, a
 "Build it with these N" control appears beside Continue. Before it existed the
 only route from question three to your archive was pressing "Skip this one"
