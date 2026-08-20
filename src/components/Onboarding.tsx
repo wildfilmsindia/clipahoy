@@ -89,6 +89,20 @@ export function Onboarding({
       setPhase('revealing');
       document.cookie = `${TASTE_COOKIE}=${encodeTaste(final)}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
 
+      /*
+       * Mark <html> here as well as in the layout's inline script.
+       *
+       * That script only runs on a full page load, but finishing the questions
+       * navigates client-side — so the nav kept reading "Make my archive"
+       * while the visitor was looking at the archive they had just built, and
+       * only corrected itself on a hard reload.
+       */
+      if (Object.values(final).some((v) => v.trim())) {
+        document.documentElement.dataset.taste = '1';
+      } else {
+        delete document.documentElement.dataset.taste;
+      }
+
       window.setTimeout(
         () => {
           if (redirectOnDone) {
@@ -138,6 +152,20 @@ export function Onboarding({
     },
     [answers, commit, go, isLast, leaving, phase, question, value],
   );
+
+  /** Build from what has been answered so far, including this field. */
+  const finishNow = useCallback(() => {
+    if (leaving || phase !== 'asking') return;
+    const next: Answers = { ...answers };
+    const text = value.trim();
+    if (text) next[question.id] = text.slice(0, 120);
+    commit(next);
+  }, [answers, commit, leaving, phase, question, value]);
+
+  /** Answers banked so far, plus whatever is in the field right now. */
+  const answeredCount =
+    Object.values(answers).filter((v) => v.trim()).length +
+    (value.trim() && !answers[question.id]?.trim() ? 1 : 0);
 
   const back = useCallback(() => {
     if (step === 0 || leaving || phase !== 'asking') return;
@@ -309,6 +337,24 @@ export function Onboarding({
                   className="text-[13.5px] text-faint transition-colors hover:text-mute"
                 >
                   ← Back
+                </button>
+              )}
+
+              {/*
+                Stop whenever you like.
+
+                Fifteen questions is a long way to the end, and without this the
+                only route from question three to your archive was pressing
+                "Skip this one" twelve times. The recommender already works from
+                partial answers, so there is no reason to make anyone finish.
+              */}
+              {!isLast && answeredCount > 0 && (
+                <button
+                  type="button"
+                  onClick={finishNow}
+                  className="ml-auto text-[13.5px] text-accent underline decoration-line underline-offset-4 transition-colors hover:decoration-accent"
+                >
+                  Build it with these {answeredCount} →
                 </button>
               )}
             </div>

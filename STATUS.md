@@ -109,11 +109,16 @@ thing: **Seafront roads** (led with a Casablanca corniche), **Tram lines**
 (resolved to `bus`, returned Delhi bus stops), **Steam engines** and **Fish
 curry** (13 clips).
 
+**You can stop at any point.** Once at least one question is answered, a
+"Build it with these N" control appears beside Continue. Before it existed the
+only route from question three to your archive was pressing "Skip this one"
+twelve times, which is the real cost of a fifteen-question flow — not the
+questions themselves.
+
 **Known concern: length.** Fifteen questions is roughly three to four minutes,
-against the 30–60 seconds the flow was designed for. Every question is
-skippable and the recommender works from partial answers, but nobody has
-watched a real visitor go through all fifteen. Worth measuring before treating
-the count as settled.
+against the 30–60 seconds the flow was designed for. Finishing early takes the
+edge off, but nobody has watched a real visitor go through it. Worth measuring
+before treating the count as settled.
 
 ## Search benchmark
 
