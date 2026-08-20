@@ -851,7 +851,7 @@ async function main() {
   }
 
   for await (const item of readCache(limit)) {
-    const { title, description, resourceId } = item.snippet ?? {};
+    const { title, description, resourceId, publishedAt } = item.snippet ?? {};
     if (!resourceId?.videoId || !title) continue;
 
     // A video can sit in several playlists and in the uploads feed, so the
@@ -927,6 +927,8 @@ async function main() {
       placeId: hit ? hit.placeId : null,
       subjects: subjects as Subject[],
       year: extractYear(title, zones),
+      // Upload time, not filming time. Used only to detect same-shoot batches.
+      uploadedAt: publishedAt ?? null,
       isPlaceholder: false,
     });
   }

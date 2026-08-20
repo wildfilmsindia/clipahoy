@@ -323,13 +323,15 @@ function diverseTake(candidates: Clip[], limit: number, taken: Set<string>, quer
   const asked = new Set(meaningfulWords(query));
   const wordUse = new Map<string, number>();
 
-  const passes: { ceiling: number; perWord: number }[] = [
-    { ceiling: 0.34, perWord: 2 },
-    { ceiling: 0.6, perWord: 3 },
-    { ceiling: 1.01, perWord: limit },
+  const batchUse = new Map<string, number>();
+
+  const passes: { ceiling: number; perWord: number; perBatch: number }[] = [
+    { ceiling: 0.34, perWord: 2, perBatch: 1 },
+    { ceiling: 0.6, perWord: 3, perBatch: 2 },
+    { ceiling: 1.01, perWord: limit, perBatch: limit },
   ];
 
-  for (const { ceiling, perWord } of passes) {
+  for (const { ceiling, perWord, perBatch } of passes) {
     for (const clip of candidates) {
       if (picked.length >= limit) break;
       if (taken.has(clip.id) || picked.some((p) => p.id === clip.id)) continue;
@@ -341,7 +343,17 @@ function diverseTake(candidates: Clip[], limit: number, taken: Set<string>, quer
       const own = meaningfulWords(clip.title).filter((w) => !asked.has(w));
       if (own.some((w) => (wordUse.get(w) ?? 0) >= perWord)) continue;
 
+      /*
+       * Upload batch. A shoot is uploaded in one go, so clips sharing a
+       * timestamp to the second came from the same session — five Jama Masjid
+       * biryani vendors all read 2016-09-27T06:15:34Z. This is the most direct
+       * shoot signal there is; the title guards above cover the 79% of clips
+       * that share a timestamp with nothing.
+       */
+      if (clip.uploadedAt && (batchUse.get(clip.uploadedAt) ?? 0) >= perBatch) continue;
+
       for (const w of own) wordUse.set(w, (wordUse.get(w) ?? 0) + 1);
+      if (clip.uploadedAt) batchUse.set(clip.uploadedAt, (batchUse.get(clip.uploadedAt) ?? 0) + 1);
       picked.push(clip);
     }
     if (picked.length >= limit) break;

@@ -109,6 +109,21 @@ export type Clip = {
   subjects: Subject[];
   year: number | null;
   /**
+   * When YouTube received the video — NOT when it was filmed.
+   *
+   * Kept because a shoot is uploaded as one batch, so clips sharing a
+   * timestamp to the second came from the same session: five Jama Masjid
+   * biryani vendors all read 2016-09-27T06:15:34Z. 20.9% of indexed clips
+   * share a timestamp with at least one other, which makes this the most
+   * direct "same shoot" signal available. The feed uses it to avoid filling a
+   * row with one afternoon.
+   *
+   * Do not surface this as a filming date. `year`, scraped from the prose, is
+   * the archive's own claim about when footage was shot, and even that is
+   * wrong 30.9% of the time where it can be checked.
+   */
+  uploadedAt: string | null;
+  /**
    * True when `id` is not a real YouTube ID. The UI must render a labelled
    * grey tile rather than an embed, so a placeholder can never masquerade as
    * missing footage.
