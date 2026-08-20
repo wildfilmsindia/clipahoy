@@ -67,6 +67,22 @@ mixed feed and no discovery padding: every clip on the page traces to one
 answer. Measured with all fifteen answered: 15 rows, 75 clips, **100% on-topic**,
 zero duplicates across rows.
 
+**Rows are diversified by shoot.** A day's filming produces fifteen or twenty
+clips of one location, and their titles repeat, so straight relevance order
+gave five clips of one afternoon: every biryani row was the Nizamuddin haleem
+stall, every Kerala row a backwater houseboat. Two guards run over the
+already-eligible candidates — pairwise title overlap, which catches
+near-identical captions, and a cap of two on any one distinctive word, which
+catches a shoot whose titles are worded differently but keep naming the same
+thing. Words the visitor asked for are exempt: "biryani" is expected in every
+title of a biryani row and is not evidence of repetition. Both guards relax in
+passes so a genuinely repetitive subject still fills its row. Measured across
+fifteen answers, worst pairwise similarity within any row is 0.33 and Kerala
+now spans backwaters, coast, beach, a Cochin ferry and a lagoon.
+
+**Nothing repeats across the page.** De-duplication spans every row, so a clip
+shown under one answer never reappears under another.
+
 **A clip only qualifies on evidence.** The answer's words must appear in the
 clip's *title* — which in this archive describes what the camera saw — or, for
 a place answer, the clip must be tagged with that place. Prose-only matches are

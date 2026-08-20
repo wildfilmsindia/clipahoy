@@ -269,6 +269,87 @@ function sourceClips(sig: Signals, answer: string): Clip[] {
   return [];
 }
 
+/* ------------------------------ shoot diversity --------------------------- */
+
+/**
+ * Words that identify a particular shoot rather than a subject.
+ *
+ * A day's filming produces fifteen or twenty clips of one location, and their
+ * titles repeat: "People enjoying haleem and biryani", "…at Nizamuddin",
+ * "Street food of Nizamuddin: Haleem and Biryani". Overlap on these words is
+ * the cheapest reliable signal that two clips came from the same session.
+ */
+function shootWords(clip: Clip): Set<string> {
+  return new Set(meaningfulWords(clip.title));
+}
+
+/** Jaccard overlap of title words, nudged up when the place matches too. */
+function shootSimilarity(a: Clip, b: Clip): number {
+  const wa = shootWords(a);
+  const wb = shootWords(b);
+  if (wa.size === 0 || wb.size === 0) return 0;
+
+  let shared = 0;
+  for (const w of wa) if (wb.has(w)) shared++;
+  const jaccard = shared / (wa.size + wb.size - shared);
+
+  // Same place is weak on its own — most biryani in this archive is Delhi —
+  // so it only sharpens a title overlap rather than standing in for one.
+  const samePlace = a.placeId && a.placeId === b.placeId ? 0.1 : 0;
+  return Math.min(1, jaccard + samePlace);
+}
+
+/**
+ * Pick `limit` clips that are all on-topic but not all the same shoot.
+ *
+ * Straight relevance order gave five clips of one afternoon: every biryani row
+ * was the Nizamuddin haleem stall, every Kerala row a backwater houseboat.
+ * Ranking still decides who is eligible — this only decides which of the
+ * eligible ones get the slots.
+ *
+ * Two guards, because they catch different things:
+ *
+ *   - pairwise title overlap, which catches near-identical captions;
+ *   - a cap on any one distinctive word, which catches a shoot whose titles
+ *     are worded differently but keep naming the same thing. Four of five
+ *     biryani clips said "haleem" while sitting below the overlap threshold,
+ *     because each phrased the rest of the sentence its own way.
+ *
+ * Both relax in passes, so a genuinely repetitive subject still fills its row
+ * rather than being punished for the archive's shape.
+ */
+function diverseTake(candidates: Clip[], limit: number, taken: Set<string>, query: string): Clip[] {
+  const picked: Clip[] = [];
+  const asked = new Set(meaningfulWords(query));
+  const wordUse = new Map<string, number>();
+
+  const passes: { ceiling: number; perWord: number }[] = [
+    { ceiling: 0.34, perWord: 2 },
+    { ceiling: 0.6, perWord: 3 },
+    { ceiling: 1.01, perWord: limit },
+  ];
+
+  for (const { ceiling, perWord } of passes) {
+    for (const clip of candidates) {
+      if (picked.length >= limit) break;
+      if (taken.has(clip.id) || picked.some((p) => p.id === clip.id)) continue;
+
+      if (picked.some((p) => shootSimilarity(clip, p) > ceiling)) continue;
+
+      // Words the visitor asked for are expected in every title and are not
+      // evidence of repetition; everything else is.
+      const own = meaningfulWords(clip.title).filter((w) => !asked.has(w));
+      if (own.some((w) => (wordUse.get(w) ?? 0) >= perWord)) continue;
+
+      for (const w of own) wordUse.set(w, (wordUse.get(w) ?? 0) + 1);
+      picked.push(clip);
+    }
+    if (picked.length >= limit) break;
+  }
+
+  return picked;
+}
+
 /**
  * Build one capped playlist per answered question, in the order asked.
  *
@@ -288,13 +369,10 @@ function answerGroups(answers: Answers): AnswerGroup[] {
     const pool = sourceClips(interpret({ [q.id]: answer }), answer);
     if (pool.length === 0) continue;
 
-    const clips: Clip[] = [];
-    for (const clip of pool) {
-      if (clips.length >= PER_ANSWER) break;
-      if (used.has(clip.id)) continue;
-      used.add(clip.id);
-      clips.push(clip);
-    }
+    // `used` spans every row, so a clip shown under one answer never reappears
+    // under another — the page never repeats itself.
+    const clips = diverseTake(pool, PER_ANSWER, used, answer);
+    for (const c of clips) used.add(c.id);
     if (clips.length) {
       groups.push({
         questionId: q.id,
