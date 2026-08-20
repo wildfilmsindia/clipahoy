@@ -334,11 +334,17 @@
 
   /* ---------------------------------------------------------------- meta */
 
+  /*
+   * Eyebrows label almost every section on the site, so they set the mood more
+   * than any single element. At --color-faint they were grey-on-black and the
+   * page read as one flat sheet; a warm accent-derived tone gives the eye
+   * something to travel between without shouting.
+   */
   .eyebrow {
     font-size: 0.6875rem;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--color-faint);
+    color: color-mix(in srgb, var(--color-accent) 62%, var(--color-mute));
     font-weight: 500;
   }
 

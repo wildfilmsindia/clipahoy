@@ -37,7 +37,28 @@ type Archive = {
 
 function load(): Archive {
   const file = path.join(process.cwd(), 'data', ARCHIVE_FILE);
-  const parsed = JSON.parse(readFileSync(file, 'utf8')) as ArchiveFile;
+
+  /*
+   * data/index.json is gitignored — it is 112 MB, past what a git repo should
+   * carry and past GitHub's own 100 MB file limit. A fresh clone therefore has
+   * no archive, and the raw ENOENT from readFileSync gives no clue why the
+   * build died. Say what is missing and how to produce it.
+   */
+  let raw: string;
+  try {
+    raw = readFileSync(file, 'utf8');
+  } catch {
+    throw new Error(
+      `Missing data/${ARCHIVE_FILE}.\n\n` +
+        `It is gitignored (112 MB), so a fresh clone or a CI checkout will not have it.\n` +
+        `Restore it from a backup, or rebuild it:\n\n` +
+        `  zstd -dc ~/Backups/clipahoy-archive/<date>/index.json.zst > data/${ARCHIVE_FILE}\n` +
+        `  npm run ingest -- --offline   # re-extract from data/.ingest-cache.jsonl\n\n` +
+        `See STATUS.md for how the archive is built and backed up.`,
+    );
+  }
+
+  const parsed = JSON.parse(raw) as ArchiveFile;
 
   const placeIds = new Set(parsed.places.map((p) => p.id));
 

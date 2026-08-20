@@ -346,6 +346,34 @@ Ordered roughly by how much it would matter to fix.
 
 ---
 
+## Deploying
+
+**This app is not serverless-shaped, and Netlify Functions cannot run it.**
+Measured on the real index:
+
+| | |
+|---|---|
+| `data/index.json` | **112 MB** (79.8 MB of it clip prose, 71%) |
+| Load + build the BM25 index | **9.8 s** |
+| Heap after load | **961 MB** (715 MB RSS) |
+
+A Netlify Function has 1 GB of memory and a 10 s timeout, so a cold start
+would exhaust both before serving anything — and the 112 MB file cannot be
+bundled into a function in the first place. It is also gitignored, past
+GitHub's own 100 MB file limit, so a fresh checkout has no archive at all.
+That is why a Netlify upload fails: the build throws on the missing file.
+`archive.ts` now says so explicitly instead of surfacing a bare ENOENT.
+
+The architecture is deliberate and fine — a long-lived process loads the index
+once and answers from memory. It just needs a host that keeps a process alive:
+Render, Fly, Railway, a small VPS. The alternative is moving search to a real
+engine (Postgres FTS, Typesense, Meilisearch), which would make it deployable
+anywhere but is a rewrite of the search layer, not a config change.
+
+Either way, the data still has to get to the host: it is too big for git, so it
+travels as the 35 MB zstd backup or is rebuilt with
+`npm run ingest -- --offline` from the cache.
+
 ## Repository state
 
 All work sits on `archive-discovery`, and `main` is now fast-forwarded to the

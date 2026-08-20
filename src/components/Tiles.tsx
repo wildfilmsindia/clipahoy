@@ -47,7 +47,7 @@ export function CoverTile({
         <Thumbnail
           videoId={coverId}
           eager={eager}
-          className="absolute inset-0 h-full w-full object-cover opacity-90 transition-[transform,opacity] duration-700 group-hover:scale-110 group-hover:opacity-100"
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
       )}
       <span aria-hidden="true" className={SCRIM} />
