@@ -134,6 +134,22 @@ just browse the archive" writes an empty answer set and lands on the generic
 feed. The reveal says something different when nothing was answered — claiming
 "a sense of your India" from an empty form would be a small lie.
 
+**Browse tiles read over the watermark.** Every thumbnail in this archive
+carries a "www.wildfilmsindia.com" watermark across roughly the band where a
+tile's label sits, and the scrim only reached 55% opacity there — so subject
+names were read on top of a URL. The gradient is now solid under the text and
+clear by two-thirds up: the label wins without flattening the frame.
+
+**Grids are denser on wide screens.** Three cards across a 1280px browser left
+a video archive looking sparse and pushed most results below the fold. Four
+keeps cards comfortably above 280px while showing a third more per screen.
+
+**The watch page's "More from X" rail is ranked.** It used to slice straight
+off a place filter with no ordering, so a clip of Goa rice fields opened its
+sidebar with two celebrity interviews that merely carried a Goa tag. Ranking by
+subject overlap with the clip being watched gives paddy interfaces, Western
+Ghats forest and Mandovi mangroves instead.
+
 **Playlist rows are swipeable on a phone.** Five capped picks in a 2-column
 grid took three vertical screens per answer at 375px, so a long archive was an
 enormous scroll. Below `lg` a row is a snap-scrolling rail that bleeds to the

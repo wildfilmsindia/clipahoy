@@ -12,8 +12,17 @@ import { Thumbnail } from './Thumbnail';
 
 const TILE = 'group relative block overflow-hidden rounded-sm border border-line transition-[border-color,transform] duration-300 hover:-translate-y-1 hover:border-accent/60';
 
-/* Bottom-weighted only. A full-height scrim over a dimmed image kills the art. */
-const SCRIM = 'absolute inset-0 bg-gradient-to-t from-ink via-ink/55 to-ink/5 transition-colors duration-500 group-hover:from-forest group-hover:via-forest/45';
+/*
+ * Bottom-weighted, and deliberately steep.
+ *
+ * A full-height scrim over a dimmed image kills the art, but the previous
+ * gradient only reached 55% opacity where the label sits — and every thumbnail
+ * in this archive carries a "www.wildfilmsindia.com" watermark across roughly
+ * that band, so the subject name was read on top of a URL. Solid under the
+ * text, clear by two-thirds up: the label wins without flattening the frame.
+ */
+const SCRIM =
+  'absolute inset-0 bg-gradient-to-t from-ink from-18% via-ink/70 via-42% to-transparent to-72% transition-colors duration-500 group-hover:from-forest group-hover:via-forest/60';
 
 export function CoverTile({
   href,

@@ -35,7 +35,13 @@ export function VideoGrid({
         ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3'
         : columns === 'dense'
           ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5'
-          : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4';
+          /*
+       * Denser on wide screens. Three cards across a 1280px browser left a
+       * video archive looking sparse and pushed most results below the fold;
+       * four keeps cards comfortably above 280px while showing a third more
+       * per screen.
+       */
+      : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5';
 
   return (
     <ul className={`grid gap-x-5 gap-y-9 ${cols}`}>

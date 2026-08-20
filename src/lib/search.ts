@@ -357,7 +357,30 @@ export function relatedClips(clip: Clip, limit = 6): Clip[] {
     : getAllClips().filter(
         (c) => c.id !== clip.id && c.subjects.some((s) => clip.subjects.includes(s)),
       );
-  return pool.slice(0, limit);
+
+  /*
+   * Rank by resemblance, not array order.
+   *
+   * This used to `slice(0, limit)` straight off the filter, so "More from Goa"
+   * on a clip of rice fields opened with two celebrity interviews that merely
+   * carried a Goa tag. Sharing subjects with the clip being watched is the
+   * cheapest available measure of "more like this one", and a longer
+   * description is a decent tiebreak for which of two equals was better
+   * documented.
+   */
+  const wanted = new Set(clip.subjects);
+  return pool
+    .map((c) => ({
+      clip: c,
+      shared: c.subjects.reduce((n, s) => n + (wanted.has(s) ? 1 : 0), 0),
+    }))
+    .sort(
+      (a, b) =>
+        b.shared - a.shared ||
+        (b.clip.text?.length ?? 0) - (a.clip.text?.length ?? 0),
+    )
+    .slice(0, limit)
+    .map((r) => r.clip);
 }
 
 /**
