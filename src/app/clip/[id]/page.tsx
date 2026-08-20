@@ -68,7 +68,7 @@ export default async function ClipPage({ params }: Props) {
     : [];
 
   return (
-    <main className="mx-auto w-full max-w-[1600px] px-5 pt-6 pb-20 sm:px-8 sm:pt-8">
+    <main className="shell pt-8 pb-20 sm:pt-12">
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_368px] lg:gap-10">
         {/* ------------------------------------------------------- player */}
         <div className="min-w-0">

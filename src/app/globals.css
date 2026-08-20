@@ -332,6 +332,41 @@
     }
   }
 
+  /**
+   * Page rhythm.
+   *
+   * Section padding had drifted to six different values (pt-6/8/10/12/14/16)
+   * and heading gaps to seven, chosen ad hoc per section, so the vertical
+   * rhythm read as noise rather than structure. Two steps is enough: a major
+   * break between unrelated blocks, a minor one between related ones.
+   */
+  .shell {
+    margin-inline: auto;
+    width: 100%;
+    max-width: 1600px;
+    padding-inline: 1.25rem;
+  }
+  @media (min-width: 640px) {
+    .shell {
+      padding-inline: 2rem;
+    }
+  }
+
+  .section-major {
+    padding-top: 4rem;
+  }
+  .section-minor {
+    padding-top: 2.5rem;
+  }
+  @media (min-width: 640px) {
+    .section-major {
+      padding-top: 5rem;
+    }
+    .section-minor {
+      padding-top: 3rem;
+    }
+  }
+
   /* ---------------------------------------------------------------- meta */
 
   /*

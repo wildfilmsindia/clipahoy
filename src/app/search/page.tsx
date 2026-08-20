@@ -61,7 +61,7 @@ export default async function SearchPage({
   };
 
   return (
-    <main className="mx-auto w-full max-w-[1600px] px-5 pt-8 pb-20 sm:px-8 sm:pt-12">
+    <main className="shell pt-8 pb-20 sm:pt-12">
       <header className="rise">
         <p className="eyebrow">Search results</p>
         <h1 className="mt-2.5 font-display text-[30px] leading-tight font-light sm:text-[42px]">

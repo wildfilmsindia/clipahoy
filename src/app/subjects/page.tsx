@@ -15,7 +15,7 @@ export default function SubjectsPage() {
   for (const { subject } of subjects) covers.set(subject, coverForSubject(subject, used));
 
   return (
-    <main className="mx-auto w-full max-w-[1600px] px-5 pt-10 pb-20 sm:px-8 sm:pt-14">
+    <main className="shell pt-8 pb-20 sm:pt-12">
       <header className="rise rule-accent">
         <p className="eyebrow">Explore</p>
         <h1 className="mt-2 font-display text-[34px] leading-tight font-light sm:text-[46px]">

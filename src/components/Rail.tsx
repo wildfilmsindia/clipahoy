@@ -32,7 +32,7 @@ export function Rail({
 }) {
   if (cards.length === 0) return null;
 
-  const gutter = flush ? '' : 'mx-auto w-full max-w-[1600px] px-5 sm:px-8';
+  const gutter = flush ? '' : 'shell';
 
   /*
    * Too few cards to scroll? Lay them out as a grid instead.
@@ -65,9 +65,9 @@ export function Rail({
           className={
             sparse
               ? `grid gap-x-5 gap-y-9 ${sparseCols} ${
-                  flush ? '' : 'mx-auto max-w-[1600px] px-5 sm:px-8'
+                  flush ? '' : 'shell'
                 }`
-              : `rail ${flush ? '' : 'mx-auto max-w-[1600px] px-5 sm:px-8'}`
+              : `rail ${flush ? '' : 'shell'}`
           }
         >
           {cards.map((data, i) => (

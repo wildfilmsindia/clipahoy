@@ -65,7 +65,7 @@ function PersonalFeed({ rec }: { rec: Recommendation }) {
   return (
     <main className="pb-16">
       {/* ======================================================== MASTHEAD */}
-      <section className="mx-auto w-full max-w-[1600px] px-5 pt-8 sm:px-8 sm:pt-12">
+      <section className="shell pt-8 sm:pt-12">
         <div className="rise flex flex-wrap items-end justify-between gap-x-10 gap-y-5 border-b border-line-soft pb-7">
           <div className="min-w-0">
             <p className="eyebrow">Your archive</p>
@@ -97,7 +97,7 @@ function PersonalFeed({ rec }: { rec: Recommendation }) {
         return (
           <section
             key={group.questionId}
-            className="mx-auto w-full max-w-[1600px] px-5 pt-12 sm:px-8 sm:pt-14"
+            className="shell section-major"
           >
             <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-l-2 border-accent pl-4">
               <div className="min-w-0">
@@ -123,7 +123,7 @@ function PersonalFeed({ rec }: { rec: Recommendation }) {
 
       {/* ========================================================== PLACES */}
       {placeRows.length > 0 && (
-        <section className="mx-auto w-full max-w-[1600px] px-5 pt-16 sm:px-8 sm:pt-20">
+        <section className="shell section-major">
           <SectionHead
             eyebrow="Browse by place"
             title="Places in your archive"
@@ -155,7 +155,7 @@ function PersonalFeed({ rec }: { rec: Recommendation }) {
 
       {/* ======================================================== SUBJECTS */}
       {subjectRows.length > 0 && (
-        <section className="mx-auto w-full max-w-[1600px] px-5 pt-10 sm:px-8 sm:pt-14">
+        <section className="shell section-minor">
           <SectionHead
             eyebrow="What your archive is made of"
             title="Subjects you keep landing on"
@@ -178,7 +178,7 @@ function PersonalFeed({ rec }: { rec: Recommendation }) {
         </section>
       )}
 
-      <section className="mx-auto w-full max-w-[1600px] px-5 pt-14 sm:px-8">
+      <section className="shell section-major">
         <div className="flex flex-wrap items-center justify-between gap-6 border-t border-line-soft pt-7">
           <p className="max-w-2xl text-[13px] text-faint">
             Every row above is one of your answers, matched against the archive&rsquo;s own place
@@ -222,7 +222,7 @@ function GenericFeed({ thinPersonalisation = false }: { thinPersonalisation?: bo
 
   return (
     <main className="pb-16">
-      <section className="mx-auto w-full max-w-[1600px] px-5 pt-8 sm:px-8 sm:pt-12">
+      <section className="shell pt-8 sm:pt-12">
         <div className="rise flex flex-wrap items-end justify-between gap-x-10 gap-y-5 border-b border-line-soft pb-7">
           <div className="min-w-0">
             <p className="eyebrow">The Wilderness Films archive</p>
@@ -260,7 +260,7 @@ function GenericFeed({ thinPersonalisation = false }: { thinPersonalisation?: bo
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-[1600px] px-5 pt-16 sm:px-8 sm:pt-20">
+      <section className="shell section-major">
         <SectionHead
           eyebrow="Explore the archive"
           title="Browse by subject"
@@ -293,7 +293,7 @@ function GenericFeed({ thinPersonalisation = false }: { thinPersonalisation?: bo
         />
       ))}
 
-      <section className="mx-auto w-full max-w-[1600px] px-5 pt-10 sm:px-8 sm:pt-14">
+      <section className="shell section-minor">
         <SectionHead
           eyebrow="Browse by place"
           title="Where the cameras went"

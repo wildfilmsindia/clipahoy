@@ -332,6 +332,17 @@ Ordered roughly by how much it would matter to fix.
 
 ### Product and platform
 
+0. **`notFound()` returns HTTP 200 in production.** `/clip/nope`,
+   `/subject/nope` and `/place/nope` render the correct not-found UI but with a
+   200 status; only a route that does not exist at all (`/nowhere`) returns a
+   real 404. The pages stream, so the status line is already sent by the time
+   `notFound()` runs. This is pre-existing and unrelated to loading states —
+   `clip/[id]` has no `loading.tsx` and behaves the same. It matters for SEO:
+   a search engine will index a soft-404. **Earlier sessions reported "404s
+   intact" from dev-mode checks; the dev server and a production build differ
+   here, and only the production build is the truth.**
+
+
 11. **The channel's 20,000-item API ceiling still applies to discovery.** The
     uploads playlist caps at 20,000 regardless of quota, and `search.list`
     returns nothing useful. Crawling plateaued at 70% of the channel; the rest

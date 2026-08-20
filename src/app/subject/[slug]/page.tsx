@@ -59,7 +59,7 @@ export default async function SubjectPage({ params, searchParams }: Props) {
             <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-ink via-ink/85 to-ink/50" />
           </>
         )}
-        <div className="relative mx-auto w-full max-w-[1600px] px-5 py-14 sm:px-8 sm:py-20">
+        <div className="shell relative py-14 sm:py-20">
           <nav aria-label="Breadcrumb">
             <Link href="/subjects" className="text-[13px] text-faint transition-colors hover:text-accent">
               Explore
@@ -75,7 +75,7 @@ export default async function SubjectPage({ params, searchParams }: Props) {
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-[1600px] px-5 py-12 sm:px-8">
+      <div className="shell py-12">
         {hero && (
           <div className="mb-10 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
             <VideoCard data={hero} size="large" eager index={0} />
