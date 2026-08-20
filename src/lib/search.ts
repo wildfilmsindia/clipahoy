@@ -100,6 +100,16 @@ export function warmIndex(): void {
   getIndex();
 }
 
+/** How many documents contain a term. Diagnostic. */
+export function termFrequency(term: string): number {
+  return getIndex().df.get(term) ?? 0;
+}
+
+/** Distinct indexed terms. Used to size the spelling-correction search. */
+export function vocabularySize(): number {
+  return getIndex().df.size;
+}
+
 export type Hit = { clip: Clip; score: number };
 
 /**
@@ -120,11 +130,122 @@ const NAME_COLLISIONS: { bare: RegExp; personal: RegExp }[] = [
   { bare: /^kailash$/i, personal: /kailash\s+(?:kher|ji\b)/i },
 ];
 
+/* ----------------------------- spelling repair ---------------------------- */
+
+/**
+ * Candidate words for spelling correction, bucketed by their first two letters.
+ *
+ * 91,536 distinct terms is far too many to measure edit distance against on
+ * every query, but a typo almost never lands on the first two characters —
+ * "keralla"/"kerala", "mumbay"/"mumbai", "elefant"/"elephant", "biriyani"/
+ * "biryani" all agree there. Bucketing turns a 91k scan into a few hundred
+ * comparisons.
+ *
+ * Only reasonably common words are candidates. Correcting toward a word that
+ * appears twice in the corpus trades a query that found nothing for one that
+ * finds almost nothing, and risks "fixing" a rare but correct spelling.
+ */
+let spellBuckets: Map<string, string[]> | null = null;
+
+function candidateBuckets(): Map<string, string[]> {
+  if (spellBuckets) return spellBuckets;
+
+  const { df } = getIndex();
+  const map = new Map<string, string[]>();
+  for (const [term, n] of df) {
+    if (term.length < 4 || n < 8) continue;
+    const key = term.slice(0, 2);
+    const bucket = map.get(key);
+    if (bucket) bucket.push(term);
+    else map.set(key, [term]);
+  }
+  spellBuckets = map;
+  return map;
+}
+
+/** Levenshtein distance, abandoned as soon as it exceeds `max`. */
+function editDistance(a: string, b: string, max: number): number {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    const row = [i];
+    let best = i;
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      row[j] = Math.min(row[j - 1] + 1, prev[j] + 1, prev[j - 1] + cost);
+      if (row[j] < best) best = row[j];
+    }
+    if (best > max) return max + 1;
+    prev = row;
+  }
+  return prev[b.length];
+}
+
+/**
+ * How rare a term has to be before we suspect it is a typo.
+ *
+ * Not zero. Uploaders make the same slips visitors do — "Hornbil Festival"
+ * appears in a real title, "rajastan" in two, "monsson" in one — so a term can
+ * exist in the index and still be a mistake. Correcting "rajastan" (2 clips)
+ * to "rajasthan" (4,978) is obviously right; the threshold stays low enough
+ * that a genuinely rare correct word is left alone.
+ */
+const TYPO_MAX_DF = 3;
+
+/**
+ * The indexed word a mistyped one most likely meant, or null.
+ *
+ * Candidates are scored by frequency divided by edit distance, not by distance
+ * alone. "elefant" is one edit from "elegant" (620 clips) and two from
+ * "elephant" (1,745) — distance alone picks the elegant birds, which is not
+ * what anyone typing "elefant" wants. Weighting by how much the archive
+ * actually uses a word picks the elephants.
+ */
+export function correctSpelling(term: string): string | null {
+  const { df } = getIndex();
+  if (term.length < 4 || (df.get(term) ?? 0) > TYPO_MAX_DF) return null;
+
+  const max = term.length >= 7 ? 2 : 1;
+  const pool = candidateBuckets().get(term.slice(0, 2)) ?? [];
+  const own = df.get(term) ?? 0;
+
+  let best: string | null = null;
+  let bestScore = 0;
+
+  for (const candidate of pool) {
+    if (candidate === term) continue;
+    const d = editDistance(term, candidate, max);
+    if (d > max) continue;
+
+    const freq = df.get(candidate) ?? 0;
+    // A correction has to be clearly better than what was typed, or leave it.
+    if (freq < Math.max(own * 8, 8)) continue;
+
+    const score = freq / d;
+    if (score > bestScore) {
+      best = candidate;
+      bestScore = score;
+    }
+  }
+
+  return best;
+}
+
 export function search(query: string, limit = 60): Hit[] {
-  const terms = tokenise(query);
-  if (terms.length === 0) return [];
+  const raw = tokenise(query);
+  if (raw.length === 0) return [];
 
   const { docs, df, avgLen } = getIndex();
+
+  /*
+   * Repair words the index has never seen. "keralla", "mumbay" and "biriyani"
+   * each returned nothing at all before this; a query that finds zero results
+   * because of one slipped key is the worst outcome the search can produce.
+   * Correctly spelled terms are left untouched — correction only ever fires on
+   * a term with no postings.
+   */
+  const terms = raw.map((t) => correctSpelling(t) ?? t);
   const N = docs.length;
 
   // Require a majority of query terms so a two-word query isn't answered by

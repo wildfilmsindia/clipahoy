@@ -184,6 +184,29 @@ export type AnswerGroup = {
   hasMore: boolean;
 };
 
+/**
+ * Split an answer into the separate things it names.
+ *
+ * "cats and dogs" is two subjects, not one. Treated as a single query it only
+ * matched clips containing both words — which in this archive is mostly the
+ * idiom, "It rains cats and dogs in Cherrapunji". Someone naming two animals
+ * wants footage of each.
+ *
+ * Splits on commas, slashes, ampersands and a standalone "and". Deliberately
+ * conservative: "and" only separates when both sides survive as real words, so
+ * "Rann of Kutch" and "cup and saucer" style names are not torn apart, and a
+ * single-entity answer falls straight through unchanged.
+ */
+function splitEntities(answer: string): string[] {
+  const parts = answer
+    .split(/\s*(?:,|\/|&|\band\b)\s*/i)
+    .map((p) => p.trim())
+    .filter((p) => meaningfulWords(p).length > 0);
+
+  // One thing named, or a phrase we could not confidently divide.
+  return parts.length > 1 ? [...new Set(parts)] : [answer];
+}
+
 /** Words worth requiring in a title. Articles carry no evidence. */
 const TITLE_NOISE = new Set(['the', 'and', 'of', 'in', 'at', 'a', 'an', 'my', 'for', 'to']);
 
@@ -216,7 +239,7 @@ function meaningfulWords(text: string): string[] {
  * did not. Measured across two dozen answers, real subjects keep 15–20 of
  * their top 20; Nowruz was the only one that kept none.
  */
-function sourceClips(sig: Signals, answer: string): Clip[] {
+function sourceClipsFor(sig: Signals, answer: string): Clip[] {
   const query = sig.terms.length
     ? sig.terms.reduce((a, b) => (b.length > a.length ? b : a))
     : answer;
@@ -363,6 +386,41 @@ function diverseTake(candidates: Clip[], limit: number, taken: Set<string>, quer
 }
 
 /**
+ * Candidates for a whole answer, merging each named thing in turn.
+ *
+ * Interleaved rather than concatenated, so "cats and dogs" alternates cat, dog,
+ * cat, dog down the row instead of spending every slot on whichever word the
+ * archive happens to cover better.
+ */
+function sourceClips(sig: Signals, answer: string, questionId: string): Clip[] {
+  const entities = splitEntities(answer);
+  if (entities.length === 1) return sourceClipsFor(sig, answer);
+
+  /*
+   * Each part is re-interpreted on its own, under the SAME question, so
+   * "dogs" resolves its own subject tag and still inherits the question's
+   * behaviour — its kind, and any tag the question implies. Interpreting it
+   * under a made-up key would silently resolve nothing at all.
+   */
+  const lists = entities.map((part) =>
+    sourceClipsFor(interpret({ [questionId]: part }), part),
+  );
+
+  const merged: Clip[] = [];
+  const seen = new Set<string>();
+  for (let i = 0; i < Math.max(...lists.map((l) => l.length)); i++) {
+    for (const list of lists) {
+      const clip = list[i];
+      if (clip && !seen.has(clip.id)) {
+        seen.add(clip.id);
+        merged.push(clip);
+      }
+    }
+  }
+  return merged;
+}
+
+/**
  * Build one capped playlist per answered question, in the order asked.
  *
  * De-duplicated across groups: a clip that already appeared for "favourite
@@ -378,7 +436,7 @@ function answerGroups(answers: Answers): AnswerGroup[] {
     const answer = answers[q.id]?.trim();
     if (!answer) continue;
 
-    const pool = sourceClips(interpret({ [q.id]: answer }), answer);
+    const pool = sourceClips(interpret({ [q.id]: answer }), answer, q.id);
     if (pool.length === 0) continue;
 
     // `used` spans every row, so a clip shown under one answer never reappears
