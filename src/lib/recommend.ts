@@ -1,9 +1,9 @@
 import 'server-only';
 
 import { getAllClips, getClipsForPlace, getPlace, isIndian } from './archive';
-import { search, termRarity } from './search';
+import { correctSpelling, search, termRarity } from './search';
 import { interpret, isEmpty, type Signals } from './interpret';
-import { QUESTIONS, type Answers } from './taste';
+import { QUESTIONS, type Answers, type TasteQuestion } from './taste';
 import type { Clip, Subject } from './types';
 
 /**
@@ -239,7 +239,30 @@ function meaningfulWords(text: string): string[] {
  * did not. Measured across two dozen answers, real subjects keep 15–20 of
  * their top 20; Nowruz was the only one that kept none.
  */
-function sourceClipsFor(sig: Signals, answer: string): Clip[] {
+/**
+ * Is this clip about the thing the question asks about?
+ *
+ * Either a matching subject tag or a matching word counts. Tags alone miss the
+ * untagged, words alone miss a clip that never repeats the category noun; both
+ * together are enough to tell a Hornbill Festival from a hornbill.
+ */
+function inContext(clip: Clip, context: TasteQuestion['context']): boolean {
+  if (!context) return true;
+
+  const title = clip.title.toLowerCase();
+  // A named wrong sense wins over any positive evidence, because the positive
+  // evidence can be a bad tag.
+  if (context.notWords?.some((w) => title.includes(w))) return false;
+
+  if (context.subjects?.some((s) => clip.subjects.includes(s))) return true;
+  if (!context.words?.length) return false;
+
+  // Title only. Matching the description let a passing mention qualify — the
+  // same failure the answer-evidence rule exists to prevent.
+  return context.words.some((w) => title.includes(w));
+}
+
+function sourceClipsFor(sig: Signals, answer: string, context?: TasteQuestion['context']): Clip[] {
   const query = sig.terms.length
     ? sig.terms.reduce((a, b) => (b.length > a.length ? b : a))
     : answer;
@@ -248,7 +271,15 @@ function sourceClipsFor(sig: Signals, answer: string): Clip[] {
     .map((h) => h.clip)
     .filter((c) => isIndian(c.placeId));
 
-  const needles = meaningfulWords(answer);
+  /*
+   * Evidence is checked against the CORRECTED spelling.
+   *
+   * Search repairs "keralla" to "kerala" and returns real Kerala footage, but
+   * the title check was still looking for the misspelling, so every clip was
+   * rejected and a typo'd answer produced an empty row — the search fix
+   * undone one layer up.
+   */
+  const needles = meaningfulWords(answer).map((w) => correctSpelling(w) ?? w);
   const inTitle = (c: Clip) => {
     const title = c.title.toLowerCase();
     return needles.length > 0 && needles.every((w) => title.includes(w));
@@ -258,6 +289,25 @@ function sourceClipsFor(sig: Signals, answer: string): Clip[] {
   // Title matches lead; place-tagged footage without the name written in the
   // title still counts, since the tag is independent evidence.
   const strong = [...ranked.filter(inTitle), ...ranked.filter((c) => !inTitle(c) && atPlace(c))];
+
+  /*
+   * Prefer clips that are also about what the question asks about. Preference,
+   * not a filter: if the archive only covers the answer outside that context,
+   * showing it is better than showing an empty row — but a construction crane
+   * should never outrank a bird when both are present.
+   */
+  if (context) {
+    const onTopic = strong.filter((c) => inContext(c, context));
+    /*
+     * If ANY clip is on topic, show only those — even if that means a row of
+     * two. Padding out to five with off-topic footage is what put construction
+     * cranes at Paradeep Port under "favourite bird" and paddy cultivation
+     * under "favourite food". Fewer right answers beat five with wrong ones in
+     * them. The fallback below only runs when nothing at all is on topic.
+     */
+    if (onTopic.length) return onTopic;
+  }
+
   if (strong.length >= PER_ANSWER) return strong;
 
   // Thin on written evidence: top up from the gazetteer, which is a tag rather
@@ -392,9 +442,14 @@ function diverseTake(candidates: Clip[], limit: number, taken: Set<string>, quer
  * cat, dog down the row instead of spending every slot on whichever word the
  * archive happens to cover better.
  */
-function sourceClips(sig: Signals, answer: string, questionId: string): Clip[] {
+function sourceClips(
+  sig: Signals,
+  answer: string,
+  questionId: string,
+  context?: TasteQuestion['context'],
+): Clip[] {
   const entities = splitEntities(answer);
-  if (entities.length === 1) return sourceClipsFor(sig, answer);
+  if (entities.length === 1) return sourceClipsFor(sig, answer, context);
 
   /*
    * Each part is re-interpreted on its own, under the SAME question, so
@@ -403,7 +458,7 @@ function sourceClips(sig: Signals, answer: string, questionId: string): Clip[] {
    * under a made-up key would silently resolve nothing at all.
    */
   const lists = entities.map((part) =>
-    sourceClipsFor(interpret({ [questionId]: part }), part),
+    sourceClipsFor(interpret({ [questionId]: part }), part, context),
   );
 
   const merged: Clip[] = [];
@@ -436,7 +491,7 @@ function answerGroups(answers: Answers): AnswerGroup[] {
     const answer = answers[q.id]?.trim();
     if (!answer) continue;
 
-    const pool = sourceClips(interpret({ [q.id]: answer }), answer, q.id);
+    const pool = sourceClips(interpret({ [q.id]: answer }), answer, q.id, q.context);
     if (pool.length === 0) continue;
 
     // `used` spans every row, so a clip shown under one answer never reappears

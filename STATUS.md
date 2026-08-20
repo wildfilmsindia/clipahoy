@@ -83,6 +83,24 @@ now spans backwaters, coast, beach, a Cochin ferry and a lagoon.
 **Nothing repeats across the page.** De-duplication spans every row, so a clip
 shown under one answer never reappears under another.
 
+**Answers are read in the context of their question.** A bare word means
+different things depending on what was asked: "crane" under *favourite bird*
+returned construction cranes at Paradeep Port, "rice" under *favourite food*
+returned paddy cultivation, "hornbill" under *favourite festival* returned the
+bird. Each topical question now carries a context — subject tags plus words —
+and a clip must match one of them, checked against the **title only** so a
+passing mention in a description cannot qualify.
+
+Some questions also carry `notWords`, a named wrong sense that overrides
+everything else. This exists because the subject tags are noisy: the Paradeep
+port clip is tagged `birds`, so no amount of positive evidence would keep it
+out. Naming the wrong sense ("vessel", "shipment", "cargo") is the only
+reliable way past a bad tag.
+
+If **any** clip is on topic, only those are shown — even if that means a row of
+two. Padding to five with off-topic footage is what produced the cranes and the
+paddy fields in the first place.
+
 **A clip only qualifies on evidence.** The answer's words must appear in the
 clip's *title* — which in this archive describes what the camera saw — or, for
 a place answer, the clip must be tagged with that place. Prose-only matches are

@@ -51,6 +51,25 @@ export type TasteQuestion = {
    * anywhere else.
    */
   implies?: Subject[];
+  /**
+   * What the question is *about*, used to disambiguate the answer.
+   *
+   * A bare word means different things in different questions. "Crane" under
+   * "favourite bird" returned construction cranes at Paradeep Port; "rice"
+   * under "favourite food" returned paddy cultivation; "hornbill" under
+   * "favourite festival" returned the bird rather than the Nagaland festival.
+   *
+   * A clip is in context if it carries one of `subjects` OR mentions one of
+   * `words`. Tags alone are not enough — plenty of real matches are untagged —
+   * and words alone are not enough either, since a correct clip may simply not
+   * repeat the category noun.
+   *
+   * `notWords` overrides both, matched against the TITLE only. It exists
+   * because the subject tags are noisy: "Crane vessel unloading shipment at
+   * Paradeep Port" is tagged `birds`, so no amount of positive evidence keeps
+   * it out. Naming the wrong sense is the only reliable way past a bad tag.
+   */
+  context?: { subjects?: Subject[]; words?: string[]; notWords?: string[] };
 };
 
 export const TASTE_VERSION = 6;
@@ -118,6 +137,13 @@ export const QUESTIONS: TasteQuestion[] = [
       'Street food', 'Sweets', 'Biryani', 'Chaat', 'Thali', 'Momos',
       'Samosa', 'Paan', 'Dosa', 'Mithai', 'Chai', 'Kebabs', 'Pakoda',
     ],
+    context: {
+      subjects: ['street food'],
+      words: ['food', 'eat', 'eating', 'dish', 'cook', 'cooking', 'meal', 'snack', 'stall', 'restaurant', 'cuisine', 'kitchen', 'serve', 'serving', 'vendor', 'delicacy', 'taste', 'tasty', 'recipe', 'drink', 'beer', 'sweet', 'plate'],
+      // Growing an ingredient is not the food someone means. "Rice" returned
+      // paddy cultivation and husking rather than anything on a plate.
+      notWords: ['cultivation', 'farming', 'farmer', 'paddy', 'plantation', 'crop', 'harvest', 'sowing', 'field', 'husking', 'pounding', 'mill'],
+    },
   },
   {
     id: 'animal',
@@ -132,6 +158,10 @@ export const QUESTIONS: TasteQuestion[] = [
       'Elephant', 'Tiger', 'Leopard', 'Deer', 'Camel', 'Snow leopard',
       'Monkey', 'Langur', 'Rhino', 'Buffalo', 'Nilgai', 'Blackbuck',
     ],
+    context: {
+      subjects: ['wildlife', 'livestock', 'forest'],
+      words: ['wildlife', 'animal', 'sanctuary', 'reserve', 'jungle', 'forest', 'herd', 'wild', 'habitat', 'safari', 'park'],
+    },
   },
   {
     id: 'favplace',
@@ -156,6 +186,10 @@ export const QUESTIONS: TasteQuestion[] = [
       'Ganesh Chaturthi', 'Hornbill Festival', 'Chhath Puja', 'Bihu', 'Navratri',
       'Pushkar Fair', 'Onam', 'Pongal', 'Baisakhi', 'Lohri',
     ],
+    context: {
+      subjects: ['festival', 'ceremony'],
+      words: ['festival', 'mela', 'puja', 'celebration', 'celebrate', 'procession', 'parade', 'festivities', 'ritual', 'devotee', 'pilgrim'],
+    },
   },
   {
     id: 'flower',
@@ -170,6 +204,10 @@ export const QUESTIONS: TasteQuestion[] = [
       'Lotus', 'Rhododendron', 'Marigold', 'Rose', 'Orchid', 'Sunflower',
       'Jasmine', 'Tulip', 'Bougainvillea',
     ],
+    context: {
+      subjects: ['flowers'],
+      words: ['flower', 'bloom', 'blossom', 'petal', 'garden', 'floral', 'plant', 'nursery'],
+    },
   },
   {
     id: 'bird',
@@ -184,6 +222,12 @@ export const QUESTIONS: TasteQuestion[] = [
       'Peacock', 'Hornbill', 'Crane', 'Kingfisher', 'Bulbul', 'Woodpecker',
       'Parakeet', 'Eagle', 'Myna', 'Flamingo', 'Owl', 'Stork', 'Heron',
     ],
+    context: {
+      subjects: ['birds'],
+      words: ['bird', 'nest', 'perch', 'wing', 'feather', 'beak', 'plumage', 'avian', 'birding', 'flock', 'sanctuary'],
+      // "Crane" is also cargo machinery, and the port clips are tagged `birds`.
+      notWords: ['vessel', 'shipment', 'cargo', 'port', 'deck', 'container', 'construction', 'machinery', 'lifting', 'consignment', 'crane operator'],
+    },
   },
   {
     id: 'wildlife',
@@ -204,6 +248,10 @@ export const QUESTIONS: TasteQuestion[] = [
     kind: 'topic',
     // winter 2,975 · monsoon 2,258 · summer 1,909 · spring 1,742 · harvest 641
     suggest: ['Monsoon', 'Winter', 'Summer', 'Spring', 'Autumn', 'Harvest', 'Snowfall'],
+    context: {
+      subjects: ['monsoon', 'snow'],
+      words: ['season', 'weather', 'rain', 'monsoon', 'winter', 'summer', 'spring', 'climate', 'harvest'],
+    },
   },
   {
     id: 'city',
@@ -237,6 +285,10 @@ export const QUESTIONS: TasteQuestion[] = [
       'Cricket', 'Wrestling', 'Kabaddi', 'Handloom', 'Pottery', 'Yoga',
       'Bharatanatyam', 'Kathakali', 'Rangoli',
     ],
+    context: {
+      subjects: ['music', 'dance', 'sport', 'crafts', 'ceremony'],
+      words: ['music', 'dance', 'dancer', 'cinema', 'film', 'sport', 'match', 'performance', 'perform', 'culture', 'cultural', 'artist', 'craft'],
+    },
   },
 ];
 
