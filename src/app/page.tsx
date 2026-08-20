@@ -10,7 +10,6 @@ import { recommend, summarise, type Recommendation } from '@/lib/recommend';
 import { suggestionVocabulary } from '@/lib/interpret';
 import { backdropClips } from '@/lib/onboarding';
 import { TASTE_COOKIE, decodeTaste, hasAnswers } from '@/lib/taste';
-import { VideoCard } from '@/components/VideoCard';
 import { VideoGrid } from '@/components/VideoGrid';
 import { Rail, SectionHead } from '@/components/Rail';
 import { SearchField } from '@/components/SearchField';
@@ -49,12 +48,6 @@ export default async function Home() {
 function PersonalFeed({ rec }: { rec: Recommendation }) {
   const summary = summarise(rec);
 
-  const firstPicks = toCards(rec.firstPicks);
-  const closeToHome = toCards(rec.closeToHome);
-  const remember = toCards(rec.remember);
-  const further = toCards(rec.further);
-  const keepExploring = toCards(rec.keepExploring);
-
   const usedCovers = new Set<string>();
   const placeRows = rec.places.map(({ placeId, clips }) => ({
     place: getPlace(placeId),
@@ -67,6 +60,8 @@ function PersonalFeed({ rec }: { rec: Recommendation }) {
     cover: coverForSubject(subject, usedCovers),
   }));
 
+  const totalClips = rec.groups.reduce((n, g) => n + g.clips.length, 0);
+
   return (
     <main className="pb-16">
       {/* ======================================================== MASTHEAD */}
@@ -78,72 +73,57 @@ function PersonalFeed({ rec }: { rec: Recommendation }) {
               Your India
             </h1>
             {summary && <p className="mt-4 max-w-2xl text-[15px] text-mute">{summary}</p>}
+            <p className="mt-2 text-[13px] text-faint tabular-nums">
+              {totalClips} clip{totalClips === 1 ? '' : 's'} across {rec.groups.length}{' '}
+              {rec.groups.length === 1 ? 'answer' : 'answers'}
+            </p>
           </div>
 
-          {/*
-            Personalisation is a product feature, not a setting: a real control
-            at the top of the feed, not a link buried under it.
-          */}
           <Link href="/start" className="btn btn-primary shrink-0">
             Tune your archive
             <span aria-hidden="true">→</span>
           </Link>
         </div>
-
-        {/* ==================================================== FIRST PICKS */}
-        {firstPicks.length > 0 && (
-          <div className="mt-9">
-            <SectionHead eyebrow="Made for you" title="Your first picks" />
-            <div className="mt-7 grid gap-5 lg:grid-cols-[1.35fr_1fr] lg:items-start">
-              <div className="rise" style={{ animationDelay: '60ms' }}>
-                <VideoCard data={firstPicks[0]} size="large" eager index={0} />
-              </div>
-              <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                {firstPicks.slice(1, 5).map((c, i) => (
-                  <li
-                    key={c.clip.id}
-                    className="rise"
-                    style={{ animationDelay: `${120 + i * 60}ms` }}
-                  >
-                    <VideoCard data={c} size="row" index={i + 1} />
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {firstPicks.length > 5 && (
-              <div className="mt-9">
-                <VideoGrid cards={firstPicks.slice(5)} columns="dense" eagerCount={0} />
-              </div>
-            )}
-          </div>
-        )}
       </section>
 
-      {/* ==================================================== CLOSE TO HOME */}
-      {closeToHome.length > 0 && (
-        <section className="mx-auto w-full max-w-[1600px] px-5 pt-16 sm:px-8 sm:pt-20">
-          <SectionHead eyebrow="Where you told us about" title="Close to home" />
-          <div className="mt-7">
-            <VideoGrid cards={closeToHome} columns="dense" eagerCount={0} />
-          </div>
-        </section>
-      )}
+      {/*
+        One playlist per answer, in the order the questions were asked. Capped
+        at five so the page stays a set of deliberate short rows rather than an
+        endless feed, and nothing appears that cannot be traced to something
+        the visitor typed.
+      */}
+      {rec.groups.map((group, i) => {
+        const cards = toCards(group.clips);
+        return (
+          <section
+            key={group.questionId}
+            className="mx-auto w-full max-w-[1600px] px-5 pt-12 sm:px-8 sm:pt-14"
+          >
+            <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-l-2 border-accent pl-4">
+              <div className="min-w-0">
+                <p className="eyebrow">{group.prompt}</p>
+                <h2 className="mt-1.5 font-display text-[26px] leading-tight font-light capitalize sm:text-[34px]">
+                  {group.answer}
+                </h2>
+              </div>
+              <Link
+                href={`/search?q=${encodeURIComponent(group.answer)}`}
+                className="shrink-0 text-[13px] text-mute underline decoration-line underline-offset-4 transition-colors hover:text-accent hover:decoration-accent"
+              >
+                {group.hasMore ? 'More like this' : 'Search this'} →
+              </Link>
+            </div>
 
-      {/* ======================================================== REMEMBER */}
-      {remember.length > 0 && (
-        <Rail
-          cards={remember}
-          eyebrow="Older footage, same streets"
-          title="You might remember this"
-          href="/subject/old%20town"
-          linkLabel="More like this"
-        />
-      )}
+            <div className="mt-6">
+              <VideoGrid cards={cards} columns="playlist" eagerCount={i === 0 ? 5 : 0} />
+            </div>
+          </section>
+        );
+      })}
 
       {/* ========================================================== PLACES */}
       {placeRows.length > 0 && (
-        <section className="mx-auto w-full max-w-[1600px] px-5 pt-10 sm:px-8 sm:pt-14">
+        <section className="mx-auto w-full max-w-[1600px] px-5 pt-16 sm:px-8 sm:pt-20">
           <SectionHead
             eyebrow="Browse by place"
             title="Places in your archive"
@@ -173,17 +153,6 @@ function PersonalFeed({ rec }: { rec: Recommendation }) {
         </section>
       )}
 
-      {/* ========================================================= FURTHER */}
-      {further.length > 0 && (
-        <Rail
-          cards={further}
-          eyebrow="Outside what you asked for"
-          title="Go a little further"
-          href="/subjects"
-          linkLabel="Browse everything"
-        />
-      )}
-
       {/* ======================================================== SUBJECTS */}
       {subjectRows.length > 0 && (
         <section className="mx-auto w-full max-w-[1600px] px-5 pt-10 sm:px-8 sm:pt-14">
@@ -209,26 +178,18 @@ function PersonalFeed({ rec }: { rec: Recommendation }) {
         </section>
       )}
 
-      {/* ================================================== KEEP EXPLORING */}
-      {keepExploring.length > 0 && (
-        <section className="mx-auto w-full max-w-[1600px] px-5 pt-16 sm:px-8 sm:pt-20">
-          <SectionHead eyebrow="No particular reason" title="Keep exploring" />
-          <div className="mt-7">
-            <VideoGrid cards={keepExploring} columns="dense" eagerCount={0} />
-          </div>
-
-          <div className="mt-14 flex flex-wrap items-center justify-between gap-6 border-t border-line-soft pt-7">
-            <p className="max-w-2xl text-[13px] text-faint">
-              Ranked from the archive&rsquo;s own place and subject metadata against what you typed.
-              There are no view counts, no watch history and no popularity signals here — the
-              collection does not have them.
-            </p>
-            <Link href="/start" className="btn btn-ghost shrink-0">
-              Change my interests
-            </Link>
-          </div>
-        </section>
-      )}
+      <section className="mx-auto w-full max-w-[1600px] px-5 pt-14 sm:px-8">
+        <div className="flex flex-wrap items-center justify-between gap-6 border-t border-line-soft pt-7">
+          <p className="max-w-2xl text-[13px] text-faint">
+            Every row above is one of your answers, matched against the archive&rsquo;s own place
+            and subject metadata. Nothing here is filler — if an answer found fewer than five
+            clips, that is all the archive holds.
+          </p>
+          <Link href="/start" className="btn btn-ghost shrink-0">
+            Change my answers
+          </Link>
+        </div>
+      </section>
     </main>
   );
 }

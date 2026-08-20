@@ -42,9 +42,6 @@ const W = {
   text: 9,
 } as const;
 
-/** Subjects that read as memory rather than as news. */
-const NOSTALGIC: Subject[] = ['old town', 'railway', 'bazaar', 'architecture', 'fort', 'bus'];
-
 /**
  * Per-clip relevance boost for the free-text signals, scaled by how specific
  * each term is.
@@ -157,149 +154,164 @@ function scoreAll(signals: Signals, withText = true): Scored[] {
   return out;
 }
 
-/**
- * Round-robin by bucket so one strong signal cannot monopolise a row.
- *
- * Without this, "Mumbai" plus "railways" returned twenty near-identical
- * platform clips from one station — technically the best matches, and a dead
- * feed. Bucketing on place-plus-lead-subject keeps the ranking but forces
- * variety.
- */
-function diversify(scored: Scored[], limit: number, perBucket = 2): Clip[] {
-  const buckets = new Map<string, Clip[]>();
-  for (const { clip } of scored) {
-    const key = `${clip.placeId ?? 'nowhere'}:${clip.subjects[0] ?? 'untagged'}`;
-    const bucket = buckets.get(key);
-    if (bucket) bucket.push(clip);
-    else buckets.set(key, [clip]);
-  }
+/* ------------------------------ per-answer picks -------------------------- */
 
-  const queues = [...buckets.values()];
-  const out: Clip[] = [];
-  for (let round = 0; round < perBucket && out.length < limit; round++) {
-    for (const queue of queues) {
-      if (out.length >= limit) break;
-      const clip = queue[round];
-      if (clip) out.push(clip);
-    }
-  }
-  return out;
+/**
+ * The feed is a set of small playlists, one per question answered.
+ *
+ * Everything the visitor typed gets its own row of up to five clips — fewer if
+ * that is all the archive genuinely holds, never more. Earlier versions mixed
+ * every answer into one long ranked feed and then padded it out with loosely
+ * related "discovery" footage, which read as random. Grouping by answer means
+ * every clip on the page can be traced to something the person actually said.
+ */
+export const PER_ANSWER = 5;
+
+export type AnswerGroup = {
+  questionId: string;
+  /** The question, for the section heading. */
+  prompt: string;
+  /** What they typed, shown back to them verbatim. */
+  answer: string;
+  clips: Clip[];
+  /**
+   * Whether the archive holds more than the five shown.
+   *
+   * Deliberately a boolean, not a count: the candidate pool is capped at the
+   * search limit, so any number taken from it would be "at least N" dressed up
+   * as a total. The link says "more", not a figure it cannot stand behind.
+   */
+  hasMore: boolean;
+};
+
+/** Words worth requiring in a title. Articles carry no evidence. */
+const TITLE_NOISE = new Set(['the', 'and', 'of', 'in', 'at', 'a', 'an', 'my', 'for', 'to']);
+
+function meaningfulWords(text: string): string[] {
+  return text
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((w) => w.length > 2 && !TITLE_NOISE.has(w));
 }
 
-/* ----------------------------- per-answer breadth ------------------------- */
-
 /**
- * One ranked clip list per answered question.
+ * Every answer is ranked by BM25 over title and prose, including place answers.
  *
- * The feed's job is to reflect everything the visitor typed, not just their
- * loudest answer. Scoring each answer on its own — then round-robining across
- * them — guarantees "favourite bird: peacock" earns a slot even when
- * "favourite festival: Durga Puja" (a rare word over a huge tag) would
- * otherwise sweep the entire opening row.
+ * Place answers used to bypass search and sort the place's tagged clips by a
+ * hand-rolled "representativeness" heuristic. That surfaced whatever happened
+ * to be tagged rather than what the place is known for: Mumbai led with two
+ * celebrity interviews that merely carried a Mumbai tag. Ranking by the words
+ * instead gives Kerala houseboats, Varanasi ghats and Mumbai rush hour.
+ *
+ * A clip only qualifies on EVIDENCE, not on a passing mention:
+ *
+ *   - the answer's words appear in the TITLE, which in this archive describes
+ *     what the camera saw, or
+ *   - for a place answer, the clip is actually tagged with that place.
+ *
+ * Prose-only matches are dropped. Asking for "Nowruz" used to return Ladakh
+ * polo and a militant attack, because all four clips mentioning the word do so
+ * in passing — "festive occasions like Losar and Nowruz". The archive holds no
+ * Nowruz footage, and an empty row says that honestly where five wrong clips
+ * did not. Measured across two dozen answers, real subjects keep 15–20 of
+ * their top 20; Nowruz was the only one that kept none.
  */
-type AnswerSource = { id: string; clips: Clip[] };
+function sourceClips(sig: Signals, answer: string): Clip[] {
+  const query = sig.terms.length
+    ? sig.terms.reduce((a, b) => (b.length > a.length ? b : a))
+    : answer;
 
-/**
- * A representative-quality ordering for clips that share a structural signal
- * but nothing to rank them by — every Kolkata clip has the same place score.
- * Prefer the ones a person actually named something else about (higher global
- * score), then the well-tagged and well-described, so a place answer leads
- * with a real Kolkata scene rather than whatever sat first in the array.
- */
-function representativeRank(scoreById: Map<string, number>) {
-  return (a: Clip, b: Clip) =>
-    (scoreById.get(b.id) ?? 0) - (scoreById.get(a.id) ?? 0) ||
-    b.subjects.length - a.subjects.length ||
-    b.title.length - a.title.length;
-}
+  const ranked = search(query, 80)
+    .map((h) => h.clip)
+    .filter((c) => isIndian(c.placeId));
 
-/** The clips one answer is about, most specific signal first, cheaply. */
-function sourceClips(sig: Signals, rank: (a: Clip, b: Clip) => number): Clip[] {
-  // The exact words typed, ranked by BM25 — precise for topic/open answers.
-  // One search per answer, on the most specific (longest) term: "durga puja"
-  // rather than also "durga". A second search per answer roughly doubled the
-  // feed's render time for a phrase that adds nothing the first did not.
-  if (sig.terms.length) {
-    const term = sig.terms.reduce((a, b) => (b.length > a.length ? b : a));
-    const out = search(term, 60)
-      .map((h) => h.clip)
-      .filter((c) => isIndian(c.placeId));
-    if (out.length) return out;
-  }
-  // A named place, ranked for representativeness.
+  const needles = meaningfulWords(answer);
+  const inTitle = (c: Clip) => {
+    const title = c.title.toLowerCase();
+    return needles.length > 0 && needles.every((w) => title.includes(w));
+  };
+  const atPlace = (c: Clip) => !!c.placeId && sig.places.has(c.placeId);
+
+  // Title matches lead; place-tagged footage without the name written in the
+  // title still counts, since the tag is independent evidence.
+  const strong = [...ranked.filter(inTitle), ...ranked.filter((c) => !inTitle(c) && atPlace(c))];
+  if (strong.length >= PER_ANSWER) return strong;
+
+  // Thin on written evidence: top up from the gazetteer, which is a tag rather
+  // than a guess, before giving up on the answer.
   if (sig.places.size) {
-    return [...sig.places]
+    const tagged = [...sig.places]
       .flatMap((id) => getClipsForPlace(id))
-      .filter((c) => isIndian(c.placeId))
-      .sort(rank);
+      .filter((c) => isIndian(c.placeId) && !strong.some((o) => o.id === c.id));
+    if (strong.length + tagged.length > 0) return [...strong, ...tagged];
   }
+
+  if (strong.length) return strong;
+
+  /*
+   * No title or place evidence at all. Structural tags are still trustworthy —
+   * they were assigned by the extractor, not inferred from one word in a
+   * paragraph — so a state, subject or region answer can still fill a row.
+   */
   if (sig.states.size) {
-    return getAllClips()
-      .filter((c) => c.placeId && sig.states.has(getPlace(c.placeId)?.state ?? ''))
-      .sort(rank);
+    return getAllClips().filter((c) => c.placeId && sig.states.has(getPlace(c.placeId)?.state ?? ''));
   }
   if (sig.subjects.size) {
-    return getAllClips()
-      .filter((c) => isIndian(c.placeId) && c.subjects.some((s) => sig.subjects.has(s)))
-      .sort(rank);
+    return getAllClips().filter(
+      (c) => isIndian(c.placeId) && c.subjects.some((s) => sig.subjects.has(s)),
+    );
   }
   if (sig.regions.size) {
-    return getAllClips()
-      .filter((c) => c.placeId && sig.regions.has(getPlace(c.placeId)?.region as never))
-      .sort(rank);
+    return getAllClips().filter((c) => c.placeId && sig.regions.has(getPlace(c.placeId)?.region as never));
   }
+
+  // The archive mentions the word but has no footage of it. Say nothing.
   return [];
 }
 
-function perAnswerSources(answers: Answers, rank: (a: Clip, b: Clip) => number): AnswerSource[] {
-  const sources: AnswerSource[] = [];
-  for (const q of QUESTIONS) {
-    const text = answers[q.id]?.trim();
-    if (!text) continue;
-    const clips = sourceClips(interpret({ [q.id]: text }), rank);
-    if (clips.length) sources.push({ id: q.id, clips });
-  }
-  return sources;
-}
-
 /**
- * Take clips fairly across sources: the best unused clip from each in turn,
- * cycling until `limit` is reached. In question order, so the opening row
- * reads as a tour of what the person told us, not a pile of one thing.
+ * Build one capped playlist per answered question, in the order asked.
+ *
+ * De-duplicated across groups: a clip that already appeared for "favourite
+ * animal: elephant" will not appear again under "dream wildlife experience".
+ * Each group keeps drawing down its own ranked list until it has five of its
+ * own, so an overlap costs a later group depth rather than its whole row.
  */
-function roundRobin(sources: AnswerSource[], limit: number, used: Set<string>): Clip[] {
-  const out: Clip[] = [];
-  const cursor = sources.map(() => 0);
-  let advanced = true;
-  while (out.length < limit && advanced) {
-    advanced = false;
-    for (let s = 0; s < sources.length && out.length < limit; s++) {
-      const list = sources[s].clips;
-      while (cursor[s] < list.length) {
-        const c = list[cursor[s]++];
-        if (!used.has(c.id)) {
-          used.add(c.id);
-          out.push(c);
-          advanced = true;
-          break;
-        }
-      }
+function answerGroups(answers: Answers): AnswerGroup[] {
+  const groups: AnswerGroup[] = [];
+  const used = new Set<string>();
+
+  for (const q of QUESTIONS) {
+    const answer = answers[q.id]?.trim();
+    if (!answer) continue;
+
+    const pool = sourceClips(interpret({ [q.id]: answer }), answer);
+    if (pool.length === 0) continue;
+
+    const clips: Clip[] = [];
+    for (const clip of pool) {
+      if (clips.length >= PER_ANSWER) break;
+      if (used.has(clip.id)) continue;
+      used.add(clip.id);
+      clips.push(clip);
+    }
+    if (clips.length) {
+      groups.push({
+        questionId: q.id,
+        prompt: q.prompt,
+        answer,
+        clips,
+        hasMore: pool.length > clips.length,
+      });
     }
   }
-  return out;
+
+  return groups;
 }
 
 export type Recommendation = {
-  /** The opening row. Highest-scoring, varied. */
-  firstPicks: Clip[];
-  /** Matched a place the person actually named. */
-  closeToHome: Clip[];
-  /** Older-feeling footage from those same places. */
-  remember: Clip[];
-  /** Relevant, but outside the places they named. */
-  further: Clip[];
-  /** Long tail. */
-  keepExploring: Clip[];
+  /** One capped playlist per answered question, in the order asked. */
+  groups: AnswerGroup[];
   places: { placeId: string; clips: number }[];
   subjects: { subject: Subject; count: number }[];
   signals: Signals;
@@ -311,66 +323,17 @@ export function recommend(answers: Answers): Recommendation {
   const signals = interpret(answers);
 
   if (isEmpty(signals)) {
-    return {
-      firstPicks: [],
-      closeToHome: [],
-      remember: [],
-      further: [],
-      keepExploring: [],
-      places: [],
-      subjects: [],
-      signals,
-      thin: true,
-    };
+    return { groups: [], places: [], subjects: [], signals, thin: true };
   }
 
-  // Structural only (place/subject/region) — cheap, no term searches. Used for
-  // the place-based sections, the tallies and the thin check.
+  const groups = answerGroups(answers);
+
+  /*
+   * The browse tiles under the playlists come from a structural pass — place
+   * and subject tallies over everything the answers touch. Cheap: no term
+   * searches, one walk of the clip array.
+   */
   const scored = scoreAll(signals, false).filter((s) => isIndian(s.clip.placeId));
-
-  const scoreById = new Map(scored.map((s) => [s.clip.id, s.score]));
-  const sources = perAnswerSources(answers, representativeRank(scoreById));
-
-  const used = new Set<string>();
-  const take = (pool: Scored[], limit: number, perBucket = 2) => {
-    const picked = diversify(
-      pool.filter((s) => !used.has(s.clip.id)),
-      limit,
-      perBucket,
-    );
-    for (const c of picked) used.add(c.id);
-    return picked;
-  };
-
-  /*
-   * Breadth first. The opening picks are drawn round-robin across every
-   * answered question, so each thing the visitor typed is represented before
-   * any one answer gets a second slot. This replaced a global top-score pick,
-   * which handed all nine opening cards to whichever answer was rarest — a
-   * specific festival swept the row while "peacock" and "monsoon" never
-   * appeared at all.
-   */
-  const firstPicks = roundRobin(sources, 18, used);
-
-  // The place-named cut and the nostalgic cut are genuine direct matches, kept.
-  const closeToHome = take(scored.filter((s) => s.matchedPlace), 8);
-  const remember = take(
-    scored.filter((s) => s.matchedPlace && s.clip.subjects.some((x) => NOSTALGIC.includes(x))),
-    6,
-  );
-
-  // More of the visitor's own matches, still round-robin so it stays varied
-  // rather than collapsing back onto one loud answer.
-  const keepExploring = roundRobin(sources, 16, used);
-
-  /*
-   * Discovery is padding, and padding is only wanted when the direct matches
-   * are thin. When the answers already fill the page it is suppressed; when
-   * the visitor gave little — few answers, short feed — it fills the gap with
-   * interest-matched footage from outside the places they named.
-   */
-  const rich = sources.length >= 4 && firstPicks.length + closeToHome.length >= 16;
-  const further = rich ? [] : roundRobin(sources, 10, used);
 
   const placeTally = new Map<string, number>();
   const subjectTally = new Map<Subject, number>();
@@ -391,25 +354,12 @@ export function recommend(answers: Answers): Recommendation {
     .map(([subject, count]) => ({ subject, count }));
 
   /*
-   * Thin means "too little to personalise honestly", measured over everything
-   * the answers reach — not just the structural pass, which is empty for a
-   * purely free-text answer set like "Ambassador cars" that still has hundreds
-   * of real matches.
+   * Thin means "too little to personalise honestly", measured on what the
+   * playlists actually hold rather than on how much the archive could reach.
    */
-  const reach = new Set(scored.map((s) => s.clip.id));
-  for (const src of sources) for (const c of src.clips) reach.add(c.id);
+  const total = groups.reduce((n, g) => n + g.clips.length, 0);
 
-  return {
-    firstPicks,
-    closeToHome,
-    remember,
-    further,
-    keepExploring,
-    places,
-    subjects,
-    signals,
-    thin: reach.size < 40,
-  };
+  return { groups, places, subjects, signals, thin: groups.length === 0 || total < 3 };
 }
 
 /**

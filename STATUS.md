@@ -59,25 +59,32 @@ out of `topic` — "seafood" should not resolve to a coastline.
 Autocomplete for the topical questions is a fixed list carried on the question
 itself in `taste.ts`; places and states come from the archive at request time.
 
-**The feed is built for breadth, not top score.** The opening picks are drawn
-round-robin across every answered question — one clip per answer before any
-answer gets a second — so each thing the visitor typed is represented. This
-replaced a global top-score pick, which handed all nine opening cards to
-whichever answer was rarest: a specific festival swept the row while "peacock"
-and "monsoon" produced nothing at all. Measured with all fifteen answered, all
-fifteen now appear in the feed and the opening row reads as a tour of the
-answers in order.
+**The feed is a set of playlists, one per answer.** Each answered question
+gets its own labelled row of **at most five clips** — fewer when that is all
+the archive genuinely holds, never more. Rows appear in the order the questions
+were asked, so the page reads as a tour of what the visitor said. There is no
+mixed feed and no discovery padding: every clip on the page traces to one
+answer. Measured with all fifteen answered: 15 rows, 75 clips, **100% on-topic**,
+zero duplicates across rows.
 
-**Discovery is gated on hit rate.** "Go a little further" (interest matches
-from outside the named places) only shows when the direct matches are thin —
-few answers, short feed. When the answers already fill the page it is
-suppressed, so a rich answer set is not padded with loosely-related footage.
+**A clip only qualifies on evidence.** The answer's words must appear in the
+clip's *title* — which in this archive describes what the camera saw — or, for
+a place answer, the clip must be tagged with that place. Prose-only matches are
+dropped, because a passing mention is not footage. Asking for "Nowruz" used to
+return Ladakh polo and a militant attack: all four clips mentioning the word do
+so in passing ("festive occasions like Losar and Nowruz"). The archive holds no
+Nowruz footage, and an empty row says so honestly where five wrong clips did
+not. Across two dozen answers, real subjects keep 15–20 of their top 20 under
+this rule; Nowruz was the only one that kept none.
 
-The place-based sections still come from a single structural scoring pass
-(place / state / region / subject, no text search), which keeps a full
-fifteen-answer feed to a few hundred ms in production. `thin` — the fall-back
-to the generic feed — is measured over everything the answers reach, so a
-purely free-text set like "Ambassador cars" still personalises.
+Place answers are ranked by BM25 like everything else. They used to bypass
+search and sort tagged clips by a "representativeness" heuristic, which
+surfaced whatever happened to carry the tag — Mumbai led with two celebrity
+interviews. Ranking by the words gives Kerala houseboats, Varanasi ghats and
+Mumbai rush hour.
+
+A full fifteen-answer feed renders in ~1.3s on the dev server, roughly half
+that in production.
 
 Every example chip is run through the recommender before shipping. All 60
 current chips return on-topic footage and none fall through to the generic

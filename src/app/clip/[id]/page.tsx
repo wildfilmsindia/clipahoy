@@ -49,8 +49,15 @@ export default async function ClipPage({ params }: Props) {
   const upNext = toCards(relatedClips(clip, 8));
 
   const taste = decodeTaste((await cookies()).get(TASTE_COOKIE)?.value);
+  // Flattened from the per-answer playlists, so this rail is still traceable
+  // to what the visitor typed rather than to a generic long tail.
   const forYou = taste
-    ? toCards(recommend(taste).keepExploring.filter((c) => c.id !== clip.id).slice(0, 10))
+    ? toCards(
+        recommend(taste)
+          .groups.flatMap((g) => g.clips)
+          .filter((c) => c.id !== clip.id)
+          .slice(0, 10),
+      )
     : [];
 
   const primarySubject = clip.subjects[0];
