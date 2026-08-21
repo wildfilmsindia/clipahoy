@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "ingest": "tsx --env-file=.env.local scripts/ingest.ts",
-    "ingest:playlists": "tsx --env-file=.env.local scripts/ingest.ts --playlists"
+    "ingest:playlists": "tsx --env-file=.env.local scripts/ingest.ts --playlists",
+    "pack-archive": "node scripts/pack-archive.mjs"
   },
   "dependencies": {
     "next": "16.3.0",

@@ -49,6 +49,9 @@ next-env.d.ts
 /data/.ingest-cache.jsonl
 /data/.ingest-state.json
 /data/index.json
+# ...but the gzipped archive IS tracked: 19.9 MB, so the repo carries its own
+# data and any host can build without a separate download step.
+!/data/index.json.gz
 /data/unmatched.json
 
 # Backfill working files, derived from a YouTube Studio export.
