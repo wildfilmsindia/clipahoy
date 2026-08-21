@@ -10,6 +10,21 @@ export async function register() {
   // Skip the edge runtime — the index reads from disk and only exists in Node.
   if (process.env.NEXT_RUNTIME !== 'nodejs') return;
 
-  const { warmIndex } = await import('@/lib/search');
-  warmIndex();
+  /*
+   * Never let a cold start die here.
+   *
+   * This runs before any request, so there is no error boundary above it: an
+   * exception takes the whole server function down and the platform reports
+   * only "an unknown error has occurred". A missing or corrupt archive should
+   * surface as a readable error on a page, not as a dead process.
+   *
+   * Warming is an optimisation — the index builds lazily on first use anyway —
+   * so failing here costs latency, not correctness.
+   */
+  try {
+    const { warmIndex } = await import('@/lib/search');
+    warmIndex();
+  } catch (err) {
+    console.error('[instrumentation] Could not warm the search index:', err);
+  }
 }

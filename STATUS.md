@@ -359,31 +359,33 @@ Ordered roughly by how much it would matter to fix.
 
 ## Deploying
 
-**Memory, corrected.** Earlier sessions reported 961 MB of heap and concluded
-the app could not run on any serverless platform. **That number was wrong.** It
-came from `heapUsed` sampled immediately after the index build, which counts
-garbage the collector had not yet reclaimed. Forcing a collection first gives
-the real figures:
+**It fits a serverless platform now.** Two blockers were removed:
 
-| | Reported before | Actually |
-|---|---|---|
-| Parsed archive | 398 MB | **134 MB** |
-| Search index | 545 MB | **16 MB** |
-| **Live heap** | **943 MB** | **~150 MB** |
+| | Was | Now | Vercel Hobby / Netlify limit |
+|---|---|---|---|
+| Live heap | reported 943 MB | **~150 MB** | 1024 MB |
+| Cold start | 7.0 s | **1.1 s** | 10 s |
+| Data in bundle | missing | 66 MB traced | 250 MB |
 
-It runs to completion under `--max-old-space-size=512`. RSS settles around
-600–700 MB because V8 does not hand freed pages back to the OS, but that is not
-a memory *requirement*.
+**The 943 MB was a measurement error** — `heapUsed` sampled straight after the
+index build, counting garbage the collector had not run on. Forcing a
+collection first gives ~150 MB (134 MB archive, 16 MB index). Several sessions
+of "this cannot run serverless" rested on that number and were wrong.
 
-**The real blocker is boot time, not memory.** Loading the archive and
-tokenising 108k documents takes **8 seconds** (10 s under a constrained heap),
-against a 10 s function timeout on Netlify and Vercel Hobby. That is what a
-cold start cannot survive — and the fix is to precompute the index at build
-time and ship it serialised, so boot becomes a typed-array read rather than a
-tokenising pass. Not yet done.
+Cold start fell to 1.1 s by precomputing the search index at build time
+(`data/search-index.bin`, written by a `prebuild` hook) instead of tokenising
+108k documents on every boot.
 
-**Data ships with the repo now.** `data/index.json.gz` is 19.9 MB and tracked,
-so a fresh clone builds and runs with no separate download.
+`next.config.ts` names the data files in `outputFileTracingIncludes`, because
+`archive.ts` and `search.ts` build their paths at runtime and Next cannot trace
+a computed path — that is why the first Netlify attempt crashed with "an
+unknown error has occurred". `instrumentation.ts` no longer throws on a bad
+archive either; warming is an optimisation and the index builds lazily anyway,
+so a data problem now surfaces as a readable error rather than a dead function.
+
+**Cloudflare Workers remains out.** No filesystem, a script-size limit in the
+low megabytes, and 128 MB of memory against our ~150 MB. It would need the
+search layer ported to D1/SQLite.
 
 ## Repository state
 
