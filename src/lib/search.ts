@@ -50,20 +50,64 @@ function stem(token: string): string {
   return token;
 }
 
-type Doc = { clip: Clip; len: number; tf: Map<string, number> };
+/**
+ * An inverted index: term -> the documents containing it.
+ *
+ * This used to be a FORWARD index — one `Map<string, number>` per clip, so
+ * 108,148 Maps holding term strings. Measured, that structure cost 545 MB, 58%
+ * of the process, for the same information stored here in typed arrays. Two
+ * things were expensive: per-entry Map overhead at roughly 14 million entries,
+ * and no way to share a term across the documents that contain it.
+ *
+ * Postings are parallel `Int32Array`s rather than objects, so each posting is
+ * 8 bytes with no per-object header.
+ *
+ * It is also faster to query. The old shape forced a scan of all 108k
+ * documents per search, testing each for every query term; this walks only the
+ * documents that actually contain a term.
+ */
+/**
+ * Where one term's postings sit inside the shared buffers.
+ *
+ * Two numbers, not two arrays. An earlier version gave every term its own pair
+ * of Int32Arrays, which meant 183,000 typed-array objects — each carrying its
+ * own header and backing store — and measured 423 MB. Concatenating every
+ * term's postings into two buffers and storing only offsets removes all of
+ * that per-term overhead.
+ */
+type Slice = { start: number; end: number };
 
 type Index = {
-  docs: Doc[];
+  /** Indexed clips, addressed by the doc ids held in the postings. */
+  clips: Clip[];
+  /** Term count per document, for BM25 length normalisation. */
+  lens: Int32Array;
+  /** Document frequency per term — IDF, and the spelling-correction vocabulary. */
   df: Map<string, number>;
+  /** term -> its span in the two buffers below. */
+  slices: Map<string, Slice>;
+  /** Every posting, all terms concatenated. */
+  postingDocs: Int32Array;
+  /**
+   * Term frequencies, as 16-bit. The highest count in this corpus is well
+   * under 65,535 — a title term is worth TITLE_WEIGHT (3) and prose is capped
+   * at 800 characters — so half the width is free.
+   */
+  postingFreqs: Uint16Array;
   avgLen: number;
 };
 
 let index: Index | null = null;
 
 function build(): Index {
-  const docs: Doc[] = [];
-  const df = new Map<string, number>();
+  const clips: Clip[] = [];
+  const lens: number[] = [];
+
+  // Gathered per term first, then flattened. The totals are not known until
+  // every document has been read.
+  const collected = new Map<string, { docs: number[]; freqs: number[] }>();
   let totalLen = 0;
+  let totalPostings = 0;
 
   for (const clip of getAllClips()) {
     const tf = new Map<string, number>();
@@ -79,15 +123,51 @@ function build(): Index {
 
     if (tf.size === 0) continue;
 
-    let len = 0;
-    for (const n of tf.values()) len += n;
-    totalLen += len;
+    const docId = clips.length;
+    clips.push(clip);
 
-    for (const term of tf.keys()) df.set(term, (df.get(term) ?? 0) + 1);
-    docs.push({ clip, len, tf });
+    let len = 0;
+    for (const [term, freq] of tf) {
+      len += freq;
+      totalPostings++;
+      const bucket = collected.get(term);
+      if (bucket) {
+        bucket.docs.push(docId);
+        bucket.freqs.push(freq);
+      } else {
+        collected.set(term, { docs: [docId], freqs: [freq] });
+      }
+    }
+    lens.push(len);
+    totalLen += len;
   }
 
-  return { docs, df, avgLen: docs.length ? totalLen / docs.length : 0 };
+  const postingDocs = new Int32Array(totalPostings);
+  const postingFreqs = new Uint16Array(totalPostings);
+  const slices = new Map<string, Slice>();
+  const df = new Map<string, number>();
+
+  let cursor = 0;
+  for (const [term, { docs, freqs }] of collected) {
+    const start = cursor;
+    for (let i = 0; i < docs.length; i++) {
+      postingDocs[cursor] = docs[i];
+      postingFreqs[cursor] = Math.min(freqs[i], 65535);
+      cursor++;
+    }
+    slices.set(term, { start, end: cursor });
+    df.set(term, docs.length);
+  }
+
+  return {
+    clips,
+    lens: Int32Array.from(lens),
+    df,
+    slices,
+    postingDocs,
+    postingFreqs,
+    avgLen: clips.length ? totalLen / clips.length : 0,
+  };
 }
 
 function getIndex(): Index {
@@ -103,6 +183,11 @@ export function warmIndex(): void {
 /** How many documents contain a term. Diagnostic. */
 export function termFrequency(term: string): number {
   return getIndex().df.get(term) ?? 0;
+}
+
+/** Total postings across all terms. Diagnostic. */
+export function postingCount(): number {
+  return getIndex().postingDocs.length;
 }
 
 /** Distinct indexed terms. Used to size the spelling-correction search. */
@@ -236,7 +321,7 @@ export function search(query: string, limit = 60): Hit[] {
   const raw = tokenise(query);
   if (raw.length === 0) return [];
 
-  const { docs, df, avgLen } = getIndex();
+  const { clips, lens, df, slices, postingDocs, postingFreqs, avgLen } = getIndex();
 
   /*
    * Repair words the index has never seen. "keralla", "mumbay" and "biriyani"
@@ -246,30 +331,45 @@ export function search(query: string, limit = 60): Hit[] {
    * a term with no postings.
    */
   const terms = raw.map((t) => correctSpelling(t) ?? t);
-  const N = docs.length;
+  const N = clips.length;
 
   // Require a majority of query terms so a two-word query isn't answered by
   // clips matching only its commonest word — the failure AUDIT.md §G recorded
   // for "Mumbai monsoon" and "Rajasthan village".
   const required = terms.length <= 2 ? terms.length : Math.ceil(terms.length * 0.6);
 
-  const hits: Hit[] = [];
+  /*
+   * Walk each term's postings instead of every document. Scores and match
+   * counts accumulate per document id; only documents that contain at least
+   * one query term are ever touched, where the old forward index tested all
+   * 108k for every term.
+   */
+  const scores = new Map<number, number>();
+  const matches = new Map<number, number>();
 
-  for (const doc of docs) {
-    let score = 0;
-    let matched = 0;
+  for (const term of terms) {
+    const slice = slices.get(term);
+    if (!slice) continue;
 
-    for (const term of terms) {
-      const f = doc.tf.get(term);
-      if (!f) continue;
-      matched++;
+    const n = df.get(term) ?? 0;
+    const idf = Math.log(1 + (N - n + 0.5) / (n + 0.5));
 
-      const n = df.get(term) ?? 0;
-      const idf = Math.log(1 + (N - n + 0.5) / (n + 0.5));
-      score += idf * ((f * (K1 + 1)) / (f + K1 * (1 - B + B * (doc.len / avgLen))));
+    for (let i = slice.start; i < slice.end; i++) {
+      const docId = postingDocs[i];
+      const f = postingFreqs[i];
+      const contribution =
+        idf * ((f * (K1 + 1)) / (f + K1 * (1 - B + B * (lens[docId] / avgLen))));
+
+      scores.set(docId, (scores.get(docId) ?? 0) + contribution);
+      matches.set(docId, (matches.get(docId) ?? 0) + 1);
     }
+  }
 
-    if (matched >= required && score > 0) hits.push({ clip: doc.clip, score });
+  const hits: Hit[] = [];
+  for (const [docId, score] of scores) {
+    if (score > 0 && (matches.get(docId) ?? 0) >= required) {
+      hits.push({ clip: clips[docId], score });
+    }
   }
 
   hits.sort((a, b) => b.score - a.score);
@@ -419,8 +519,8 @@ export function clipsForPlace(placeId: string, limit = 60): { clips: Clip[]; tot
 const IDF_REFERENCE = 4.5; // a moderately specific term, ~500 documents
 
 export function termRarity(phrase: string): number {
-  const { docs, df } = getIndex();
-  const N = docs.length;
+  const { clips, df } = getIndex();
+  const N = clips.length;
   const tokens = tokenise(phrase);
   if (tokens.length === 0) return 1;
 
