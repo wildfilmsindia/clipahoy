@@ -1,5 +1,8 @@
 import 'server-only';
 
+import { existsSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+
 import { getAllClips, getPlace, indiaFirst } from './archive';
 import { SUBJECTS, type Clip, type Subject } from './types';
 
@@ -170,9 +173,126 @@ function build(): Index {
   };
 }
 
+/* ------------------------- precomputed index on disk ---------------------- */
+
+const INDEX_BIN = path.join(process.cwd(), 'data', 'search-index.bin');
+const INDEX_VERSION = 1;
+
+/**
+ * Serialise the built index so a cold start does not have to tokenise 108k
+ * documents.
+ *
+ * Building from scratch takes about 8 seconds, which is the whole cold-start
+ * budget on a serverless platform. Reading typed arrays back off disk is a
+ * memcpy. The layout is one buffer: a fixed header, then the numeric arrays,
+ * then the term strings as a single newline-joined blob with parallel offset
+ * and document-frequency tables.
+ */
+export function serialiseIndex(idx: Index): Buffer {
+  const terms = [...idx.slices.keys()];
+  const termBlob = Buffer.from(terms.join('\n'), 'utf8');
+
+  /*
+   * The indexed set is not the whole archive: build() skips clips with no
+   * indexable terms, so doc ids do not line up with getAllClips() positions.
+   * Storing those positions is what lets a precomputed index be reattached to
+   * the archive exactly. Without it the clip-count check never matched and the
+   * index was silently rebuilt on every boot — the file was written, read, and
+   * then thrown away.
+   */
+  const all = getAllClips();
+  const positionById = new Map(all.map((c, i) => [c.id, i]));
+  const indexedPositions = Int32Array.from(idx.clips.map((c) => positionById.get(c.id) ?? -1));
+
+  const header = Buffer.alloc(32);
+  header.writeInt32LE(INDEX_VERSION, 0);
+  header.writeInt32LE(all.length, 4); // archive size, for staleness
+  header.writeInt32LE(terms.length, 8);
+  header.writeInt32LE(idx.postingDocs.length, 12);
+  header.writeDoubleLE(idx.avgLen, 16);
+  header.writeInt32LE(termBlob.length, 24);
+  header.writeInt32LE(idx.clips.length, 28); // indexed subset size
+
+  const starts = new Int32Array(terms.length);
+  const ends = new Int32Array(terms.length);
+  const dfs = new Int32Array(terms.length);
+  terms.forEach((t, i) => {
+    const slice = idx.slices.get(t)!;
+    starts[i] = slice.start;
+    ends[i] = slice.end;
+    dfs[i] = idx.df.get(t) ?? 0;
+  });
+
+  return Buffer.concat([
+    header,
+    Buffer.from(indexedPositions.buffer),
+    Buffer.from(idx.lens.buffer, idx.lens.byteOffset, idx.lens.byteLength),
+    Buffer.from(idx.postingDocs.buffer, idx.postingDocs.byteOffset, idx.postingDocs.byteLength),
+    Buffer.from(idx.postingFreqs.buffer, idx.postingFreqs.byteOffset, idx.postingFreqs.byteLength),
+    termBlob,
+    Buffer.from(starts.buffer),
+    Buffer.from(ends.buffer),
+    Buffer.from(dfs.buffer),
+  ]);
+}
+
+/** Read a precomputed index, or null if absent, stale or unreadable. */
+function loadPrecomputed(clips: Clip[]): Index | null {
+  if (!existsSync(INDEX_BIN)) return null;
+  try {
+    const buf = readFileSync(INDEX_BIN);
+    if (buf.readInt32LE(0) !== INDEX_VERSION) return null;
+
+    const archiveSize = buf.readInt32LE(4);
+    // The archive changed under the index; rebuild rather than mismatch ids.
+    if (archiveSize !== clips.length) return null;
+
+    const numTerms = buf.readInt32LE(8);
+    const numPostings = buf.readInt32LE(12);
+    const avgLen = buf.readDoubleLE(16);
+    const termBlobLen = buf.readInt32LE(24);
+    const numDocs = buf.readInt32LE(28);
+
+    let o = 32;
+    const positions = new Int32Array(buf.buffer.slice(buf.byteOffset + o, buf.byteOffset + o + numDocs * 4));
+    o += numDocs * 4;
+    const indexedClips = Array.from(positions, (p) => clips[p]);
+    const lens = new Int32Array(buf.buffer.slice(buf.byteOffset + o, buf.byteOffset + o + numDocs * 4));
+    o += numDocs * 4;
+    const postingDocs = new Int32Array(buf.buffer.slice(buf.byteOffset + o, buf.byteOffset + o + numPostings * 4));
+    o += numPostings * 4;
+    const postingFreqs = new Uint16Array(buf.buffer.slice(buf.byteOffset + o, buf.byteOffset + o + numPostings * 2));
+    o += numPostings * 2;
+    const terms = buf.toString('utf8', o, o + termBlobLen).split('\n');
+    o += termBlobLen;
+    const starts = new Int32Array(buf.buffer.slice(buf.byteOffset + o, buf.byteOffset + o + numTerms * 4));
+    o += numTerms * 4;
+    const ends = new Int32Array(buf.buffer.slice(buf.byteOffset + o, buf.byteOffset + o + numTerms * 4));
+    o += numTerms * 4;
+    const dfs = new Int32Array(buf.buffer.slice(buf.byteOffset + o, buf.byteOffset + o + numTerms * 4));
+
+    const slices = new Map<string, Slice>();
+    const df = new Map<string, number>();
+    for (let i = 0; i < numTerms; i++) {
+      slices.set(terms[i], { start: starts[i], end: ends[i] });
+      df.set(terms[i], dfs[i]);
+    }
+
+    return { clips: indexedClips, lens, df, slices, postingDocs, postingFreqs, avgLen };
+  } catch {
+    // A truncated or corrupt file must not take the server down; rebuild.
+    return null;
+  }
+}
+
 function getIndex(): Index {
-  if (!index) index = build();
+  if (!index) index = loadPrecomputed(getAllClips()) ?? build();
   return index;
+}
+
+/** Force a full rebuild, for the script that writes the precomputed file. */
+export function buildIndexFromScratch(): Index {
+  return build();
 }
 
 /** Build the index eagerly so the first search doesn't pay for it. */
