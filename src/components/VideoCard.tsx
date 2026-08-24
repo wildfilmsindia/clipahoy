@@ -14,6 +14,15 @@ export type CardData = {
   location: string | null;
   /** Description prose with the shared rights-holder tail stripped. */
   blurb: string | null;
+  /**
+   * Why this clip is on the page.
+   *
+   * Only the personalised feed sets it: a row already says which question and
+   * answer it came from, but not why any individual clip qualified, so a wrong
+   * pick looked identical to a right one. Browse and search results leave it
+   * unset — there, the query is the explanation.
+   */
+  reason?: string;
 };
 
 export type CardSize = 'hero' | 'large' | 'standard' | 'compact' | 'row';
@@ -112,7 +121,7 @@ export function VideoCard({
                 >
                   {sentence}
                 </h3>
-                <MetaLine clip={clip} location={location} className="mt-2.5" />
+                <MetaLine clip={clip} location={location} reason={data.reason} className="mt-2.5" />
               </div>
             )}
           </div>
@@ -127,7 +136,7 @@ export function VideoCard({
               {sentence}
             </h3>
           </Link>
-          <MetaLine clip={clip} location={location} className="mt-2" />
+          <MetaLine clip={clip} location={location} reason={data.reason} className="mt-2" />
           {size === 'standard' && data.blurb && (
             <p className="mt-2 text-[13px] leading-relaxed text-faint opacity-0 transition-opacity duration-300 clamp-2 group-hover:opacity-100">
               {data.blurb}
@@ -193,17 +202,19 @@ function RowCard({
 function MetaLine({
   clip,
   location,
+  reason,
   className = '',
 }: {
   clip: Clip;
   location: string | null;
+  reason?: string;
   className?: string;
 }) {
   const bits: string[] = [];
   if (location) bits.push(location);
   if (clip.subjects.length) bits.push(clip.subjects.slice(0, 2).join(' · '));
 
-  if (bits.length === 0) return null;
+  if (bits.length === 0 && !reason) return null;
 
   return (
     <p className={`flex flex-wrap items-center gap-x-2 text-[12.5px] text-mute ${className}`}>
@@ -213,6 +224,15 @@ function MetaLine({
           {b}
         </span>
       ))}
+      {/*
+        Why this clip is here. Quiet on purpose — it should be checkable when
+        a result looks wrong, not competing with the footage when it is right.
+      */}
+      {reason && (
+        <span className="rounded-full border border-line px-1.5 py-px text-[10.5px] tracking-wide text-faint">
+          {reason}
+        </span>
+      )}
     </p>
   );
 }

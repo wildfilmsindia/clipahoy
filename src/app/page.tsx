@@ -93,7 +93,24 @@ function PersonalFeed({ rec }: { rec: Recommendation }) {
         the visitor typed.
       */}
       {rec.groups.map((group, i) => {
-        const cards = toCards(group.clips);
+        /*
+         * Only the weaker evidence is labelled.
+         *
+         * A title match is the strongest signal this archive offers and is by
+         * far the common case — badging every card with "in the title" would
+         * put the same words on thirty cards and say nothing. Silence means the
+         * answer is in the title; a badge means it qualified some other way and
+         * is worth a second look.
+         */
+        const WEAKER_EVIDENCE: Record<string, string> = {
+          place: 'filmed here',
+          subject: 'tagged subject',
+          text: 'from the description',
+        };
+        const cards = toCards(
+          group.clips,
+          group.reasons.map((r) => WEAKER_EVIDENCE[r] ?? ''),
+        );
         return (
           <section
             key={group.questionId}

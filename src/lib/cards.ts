@@ -13,8 +13,8 @@ import type { CardData } from '@/components/VideoCard';
  * placeId is null for legitimately unplaceable footage (wildlife, nature);
  * those render on their title alone with no location line.
  */
-export function toCards(clips: Clip[]): CardData[] {
-  return clips.map((clip) => {
+export function toCards(clips: Clip[], reasons?: string[]): CardData[] {
+  return clips.map((clip, i) => {
     const place = clip.placeId ? getPlace(clip.placeId) : undefined;
     const sentence = describeClip(clip, place);
     return {
@@ -22,6 +22,7 @@ export function toCards(clips: Clip[]): CardData[] {
       sentence,
       location: describeLocation(clip, place, sentence),
       blurb: blurb(clip.text),
+      reason: reasons?.[i] || undefined,
     };
   });
 }

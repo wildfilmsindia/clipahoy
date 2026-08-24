@@ -167,6 +167,21 @@ function scoreAll(signals: Signals, withText = true): Scored[] {
  */
 export const PER_ANSWER = 5;
 
+/**
+ * Why a clip is in a row.
+ *
+ * The feed already says which question and answer a row came from, but not why
+ * any individual clip qualified — so a wrong pick was indistinguishable from a
+ * right one at a glance. Recording the evidence makes the ranking legible, and
+ * makes a bad match obvious instead of merely disappointing.
+ */
+export type MatchReason =
+  | 'title'   // the answer's words are in the clip's title
+  | 'place'   // the clip is tagged with the place named
+  | 'subject' // the clip carries a subject the question is about
+  | 'text';   // matched the prose only — the weakest evidence
+
+
 export type AnswerGroup = {
   questionId: string;
   /** The question, for the section heading. */
@@ -174,6 +189,8 @@ export type AnswerGroup = {
   /** What they typed, shown back to them verbatim. */
   answer: string;
   clips: Clip[];
+  /** Parallel to `clips`: why each one qualified. */
+  reasons: MatchReason[];
   /**
    * Whether the archive holds more than the five shown.
    *
@@ -498,12 +515,24 @@ function answerGroups(answers: Answers): AnswerGroup[] {
     // under another — the page never repeats itself.
     const clips = diverseTake(pool, PER_ANSWER, used, answer);
     for (const c of clips) used.add(c.id);
+
+    const sig = interpret({ [q.id]: answer });
+    const needles = meaningfulWords(answer);
+    const reasons = clips.map((c): MatchReason => {
+      const title = c.title.toLowerCase();
+      if (needles.length && needles.every((w) => title.includes(w))) return 'title';
+      if (c.placeId && sig.places.has(c.placeId)) return 'place';
+      if (q.context?.subjects?.some((x) => c.subjects.includes(x))) return 'subject';
+      if (c.subjects.some((x) => sig.subjects.has(x))) return 'subject';
+      return 'text';
+    });
     if (clips.length) {
       groups.push({
         questionId: q.id,
         prompt: q.prompt,
         answer,
         clips,
+        reasons,
         hasMore: pool.length > clips.length,
       });
     }
