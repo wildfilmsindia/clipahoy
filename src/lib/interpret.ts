@@ -16,8 +16,15 @@ import { QUESTIONS, type Answers, type QuestionKind } from './taste';
  * SUBJECTS is closed, places come from the gazetteer. Nothing is invented.
  */
 
-/** Historical and colonial names people still use. All targets verified present. */
-const PLACE_ALIASES: Record<string, string> = {
+/**
+ * Historical and colonial names people still use. All targets verified present.
+ *
+ * Exported because the search box needs the same knowledge: resolving "Bombay"
+ * to Mumbai for the onboarding feed while leaving `/search?q=Bombay` to find
+ * only the 955 clips that spell it the old way is the same fact applied in one
+ * place and not the other.
+ */
+export const PLACE_ALIASES: Record<string, string> = {
   bombay: 'mumbai',
   calcutta: 'kolkata',
   madras: 'chennai',
@@ -439,7 +446,23 @@ function scan(text: string, kind: QuestionKind, out: Signals): boolean {
 
       if (!hit) {
         const place = places.get(phrase);
-        if (place) {
+        /*
+         * On a narrow subject question, a place name that covers only PART of
+         * the answer is a modifier, not the subject.
+         *
+         * "Shimla mirch" is capsicum. Matching "shimla" on its own resolved the
+         * hill station, and because a Shimla-tagged street-food clip is on
+         * topic for *favourite food* while "Shimla Mirch or Capsicum" is not —
+         * "capsicum" being absent from the food vocabulary — the row came back
+         * as one kebab filmed in Shimla, with all seven capsicum clips beaten.
+         *
+         * The same reasoning the terrain rule below already uses: these are
+         * narrow subject questions, so geography has to earn the whole answer
+         * before it is believed. Answering a topic question with a bare place
+         * name still resolves, since then the phrase IS the answer.
+         */
+        const partialPlace = kind === 'topic' && size < words.length;
+        if (place && !partialPlace) {
           if (place.placeId) out.places.add(place.placeId);
           if (place.state) out.states.add(place.state);
           out.understood.push(phrase);

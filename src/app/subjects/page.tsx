@@ -8,7 +8,6 @@ export const metadata = { title: 'Explore' };
 
 export default function SubjectsPage() {
   const subjects = getSubjectCounts();
-  const total = subjects.reduce((n, s) => n + s.count, 0);
 
   const used = new Set<string>();
   const covers = new Map<string, string | undefined>();
@@ -21,10 +20,6 @@ export default function SubjectsPage() {
         <h1 className="mt-2 font-display text-[34px] leading-tight font-light sm:text-[46px]">
           Every subject in the archive
         </h1>
-        <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-mute">
-          Each clip is tagged against a closed vocabulary of {subjects.length} subjects describing
-          what the camera saw — {total.toLocaleString()} tags in total.
-        </p>
       </header>
 
       <ul className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">

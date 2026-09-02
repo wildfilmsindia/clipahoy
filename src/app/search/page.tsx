@@ -26,7 +26,12 @@ export default async function SearchPage({
 }) {
   const sp = await searchParams;
   const query = (sp.q ?? '').trim().slice(0, 120);
-  const page = Math.max(1, Number(sp.page) || 1);
+  /*
+   * Floored, because `?page=1.5` sliced from 12 to 36 — half of one page and
+   * half of the next. Clamped to the last real page further down, once the
+   * result count is known.
+   */
+  const requestedPage = Math.max(1, Math.floor(Number(sp.page)) || 1);
   const activeSubject = sp.subject;
 
   // Facets are derived from the FULL result set, not the current page, so the
@@ -48,10 +53,20 @@ export default async function SearchPage({
     : all;
 
   const total = filtered.length;
+  const lastPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  /*
+   * Clamped, not 404'd. `?page=999999` sliced past the end and rendered an
+   * EMPTY GRID under a header still claiming 2,840 results — the one state that
+   * looks like the search is broken rather than like the page ran out. The URL
+   * is editable and crawlers invent deep pages, so the last real page is the
+   * honest answer.
+   */
+  const page = Math.min(requestedPage, lastPage);
+
   const cards = toCards(
     filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((h) => h.clip),
   );
-  const lastPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const buildHref = (p: number) => {
     const params = new URLSearchParams({ q: query });
@@ -165,14 +180,12 @@ export default async function SearchPage({
       {query && total > 0 && (
         <p className="mt-16 border-t border-line-soft pt-6 text-[13px] text-faint">
           Every clip here is available to license.{' '}
-          <a
-            href="https://www.wildfilmsindia.com/contact"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/contact"
             className="text-mute underline decoration-line underline-offset-4 transition-colors hover:text-accent hover:decoration-accent"
           >
-            Contact Wilderness Films
-          </a>
+            Get in touch
+          </Link>
         </p>
       )}
     </main>

@@ -11,7 +11,7 @@ export const metadata = {
  * The questions on their own route.
  *
  * `/` shows these automatically to a first-time visitor, but they also need a
- * stable address so "Tune your archive" has somewhere to go and so the flow
+ * stable address so "Curate your India" has somewhere to go and so the flow
  * can be linked. Answering here rewrites the cookie and returns to `/`.
  *
  * Opens with empty fields every time: making a new archive is a fresh start,

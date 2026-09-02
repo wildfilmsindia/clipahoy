@@ -228,6 +228,108 @@
         "cinema|theatre|theater|talkies",
         "hall|screen|poster|ticket|marquee|single-screen|single screen|building|exterior"
       ]
+    },
+    {
+      "id": "talkinghead-1",
+      "query": "bird",
+      "source": "reported bug: a celebrity interview ranked #1 for 'bird' because the word appears twice in its title",
+      "must": [
+        "bird|avian|nest|plumage|raptor|owl|stork|heron|egret|parakeet|hornbill|peacock|munia|shikra|oriole|sanctuary|prey"
+      ],
+      "must_not": [
+        "talks on|talks about|speaks about|interview|bollywood|actress|press conference"
+      ]
+    },
+    {
+      "id": "talkinghead-2",
+      "query": "cricket",
+      "source": "same class: celebrity quotes about cricket outranking cricket footage",
+      "must": [
+        "cricket"
+      ],
+      "must_not": [
+        "talks on|talks about|speaks about|interview|bollywood|actress"
+      ]
+    },
+    {
+      "id": "alias-1",
+      "query": "Bombay",
+      "source": "historical name: search found only the 955 clips spelling it the old way, out of 3,089",
+      "must": [
+        "bombay|mumbai"
+      ]
+    },
+    {
+      "id": "alias-2",
+      "query": "Madras",
+      "source": "same, smallest of the colonial-name pairs",
+      "must": [
+        "madras|chennai"
+      ]
+    },
+    {
+      "id": "alias-3",
+      "query": "pooja",
+      "source": "transliteration variant: 4% overlap with 'puja'",
+      "must": [
+        "puja|pooja|prayer|worship|ritual|temple|devotee|aarti|arti"
+      ]
+    },
+    {
+      "id": "question-1",
+      "query": "how do they make jaggery",
+      "source": "question words counted as content and outvoted the only meaningful term; returned bats and butterflies",
+      "must": [
+        "jaggery|gur\\b|gurh|sugarcane|sugar cane"
+      ]
+    },
+    {
+      "id": "question-2",
+      "query": "where is the taj mahal",
+      "source": "question form must not dilute the name",
+      "must": [
+        "taj\\s*mahal|agra"
+      ]
+    },
+    {
+      "id": "phrase-1",
+      "query": "Republic Day 1997",
+      "source": "adjacency: the archive holds no Republic Day 1997 footage, and 'Day'+'1997' scattered used to beat the phrase",
+      "must": [
+        "republic day"
+      ]
+    },
+    {
+      "id": "phrase-2",
+      "query": "Independence Day 1997",
+      "source": "same shape, where the exact combination does exist",
+      "must": [
+        "independence|independance|azadi|red fort|august"
+      ]
+    },
+    {
+      "id": "plural-1",
+      "query": "women",
+      "source": "irregular plural: 'women' and 'woman' were separate index buckets, 7% overlap",
+      "must": [
+        "women|woman|girl|lady|ladies|female|mother|bride"
+      ]
+    },
+    {
+      "id": "plural-2",
+      "query": "horses",
+      "source": "the -es rule overshot: 'horses' stemmed to 'hors', 11% overlap with 'horse'",
+      "must": [
+        "horse|pony|ponies|equestrian|stallion|mare"
+      ]
+    },
+    {
+      "id": "talkinghead-3",
+      "query": "press conference",
+      "source": "the guard: asking for the format must still return it, not be demoted",
+      "must": [
+        "press conference|press meet|press information|media|conference"
+      ]
     }
   ]
 }

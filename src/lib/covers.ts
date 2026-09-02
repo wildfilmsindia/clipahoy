@@ -75,10 +75,32 @@ export function coverForPlace(placeId: string, used?: Set<string>): string | und
  * Deduping matters more here: a clip carries several subjects, so the plain
  * top hit put one frame on both Temple and Dance, and again on Wildlife and
  * Birds — 34 tiles showing 26 pictures.
+ *
+ * But dedup alone picked whatever was left. The tile labelled *Flowers* was
+ * fronted by "Plastic waste dumped across a green Himalayan hillside" — tagged
+ * `flowers`, and first in line once the better frames had gone to other tiles.
+ * A tile names its subject, so the picture should show it: clips whose TITLE
+ * says the word lead, and the old behaviour is the fallback for a subject too
+ * thin to offer one.
  */
 export function coverForSubject(subject: Subject, used?: Set<string>): string | undefined {
-  const clips = clipsForSubject(subject, 0, 24).clips;
-  const clip = clips.find((c) => !used?.has(c.id)) ?? clips[0];
+  // Widened from 24: the on-topic filter needs something to choose from once
+  // the earlier tiles have taken their frames.
+  const clips = clipsForSubject(subject, 0, 60).clips;
+
+  // "street food" -> ["street", "food"]; trailing s dropped so `flowers`
+  // matches a title saying "flower".
+  const needles = subject
+    .toLowerCase()
+    .split(/\s+/)
+    .map((w) => w.replace(/s$/, ''))
+    .filter((w) => w.length > 2);
+
+  const onTopic = clips.find(
+    (c) => !used?.has(c.id) && needles.some((n) => c.title.toLowerCase().includes(n)),
+  );
+
+  const clip = onTopic ?? clips.find((c) => !used?.has(c.id)) ?? clips[0];
   if (clip) used?.add(clip.id);
   return clip?.id;
 }

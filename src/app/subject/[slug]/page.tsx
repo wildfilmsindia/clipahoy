@@ -34,14 +34,23 @@ export default async function SubjectPage({ params, searchParams }: Props) {
   const subject = resolve(slug);
   if (!subject) notFound();
 
-  const page = Math.max(1, Number((await searchParams).page) || 1);
+  /*
+   * Floored and clamped. `?page=999999` sliced past the end and rendered a
+   * completely empty page — no hero, no grid, no explanation — and `?page=2.7`
+   * sliced from a half-offset straddling two pages. The count comes first
+   * because the last page cannot be known without it.
+   */
+  const requestedPage = Math.max(1, Math.floor(Number((await searchParams).page)) || 1);
+  const { total } = clipsForSubject(subject, 0, 1);
+  const lastPage = Math.max(1, Math.ceil((total - 1) / PAGE_SIZE));
+  const page = Math.min(requestedPage, lastPage);
+
   const offset = page === 1 ? 0 : 1 + (page - 1) * PAGE_SIZE;
-  const { clips, total } = clipsForSubject(subject, offset, page === 1 ? PAGE_SIZE + 1 : PAGE_SIZE);
+  const { clips } = clipsForSubject(subject, offset, page === 1 ? PAGE_SIZE + 1 : PAGE_SIZE);
   const cards = toCards(clips); // already India-first: see clipsForSubject
 
   const hero = page === 1 ? cards[0] : undefined;
   const rest = page === 1 ? cards.slice(1) : cards;
-  const lastPage = Math.max(1, Math.ceil((total - 1) / PAGE_SIZE));
 
   const others = getSubjectCounts().filter((s) => s.subject !== subject).slice(0, 12);
 

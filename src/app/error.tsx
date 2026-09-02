@@ -15,7 +15,7 @@ export default function Error({
   }, [error]);
 
   return (
-    <main className="mx-auto flex w-full max-w-[1400px] flex-col items-center px-5 py-28 text-center sm:px-8 sm:py-36">
+    <main className="shell flex flex-col items-center py-28 text-center sm:py-36">
       <p className="eyebrow">Something broke</p>
       <h1 className="mt-4 font-display text-[32px] leading-tight font-light sm:text-[42px]">
         That didn&rsquo;t load.

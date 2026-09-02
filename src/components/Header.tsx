@@ -34,7 +34,7 @@ export function Header() {
    * one) and on /start, where a search box beside a full-screen questionnaire
    * offers a competing way out of a flow the person just chose to begin.
    */
-  const isHome = pathname === '/' || pathname === '/start';
+  const isHome = pathname === '/' || pathname === '/start' || pathname === '/explore';
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -51,9 +51,17 @@ export function Header() {
           : 'border-transparent bg-transparent'
       }`}
     >
-      <div className="mx-auto flex h-16 w-full max-w-[1400px] items-center gap-4 px-5 sm:gap-6 sm:px-8">
+      <div className="shell flex h-16 items-center gap-4 sm:gap-6">
+        {/*
+          Points at /explore, not /. Once someone has answered the questions,
+          `/` IS their curated feed, so a logo linking there looped them back
+          into the list they were trying to leave — and the whole archive, its
+          search box and both browse axes became unreachable to exactly the
+          people who had engaged most. "My Archive" in the nav is the way back
+          to the curated feed.
+        */}
         <Link
-          href="/"
+          href="/explore"
           className="group shrink-0 font-display text-[20px] leading-none tracking-tight text-paper transition-colors hover:text-accent"
         >
           Clip<span className="text-accent transition-colors group-hover:text-paper">ahoy</span>
@@ -126,7 +134,7 @@ export function Header() {
       {/* Mobile nav: the two browse axes stay reachable without a menu. */}
       <nav
         aria-label="Primary mobile"
-        className="flex items-center gap-1 overflow-x-auto border-t border-line-soft/60 px-5 py-2 sm:hidden"
+        className="shell flex items-center gap-1 overflow-x-auto border-t border-line-soft/60 py-2 sm:hidden"
       >
         <Link
           href="/"

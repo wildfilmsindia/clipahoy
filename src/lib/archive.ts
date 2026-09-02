@@ -216,10 +216,79 @@ export function isIndian(placeId: string | null): boolean {
   return getPlace(placeId)?.country === 'India';
 }
 
-/** Stable India-first ordering; relative order within each group is kept. */
-export function indiaFirst<T extends { placeId: string | null }>(clips: T[]): T[] {
+/**
+ * Distant countries and cities, named in a title, on a clip the extractor never
+ * managed to place.
+ *
+ * `isIndian(null)` returns true because an untagged clip is usually a close-up
+ * of a bird or a flower with no place to give. But 21,566 clips carry no place,
+ * and a few hundred of them are plainly abroad — so "winter" in a personalised
+ * India feed returned a commuter train in Helsinki, and "spring" reached
+ * Keukenhof in the Netherlands.
+ *
+ * Deliberately NOT built from the gazetteer's own non-India entries, which was
+ * tried and was worse: it keys on nationality adjectives and flagged "Japanese
+ * Flowering Quince" (grown here), "Kalimpong rafting with Nepali friends"
+ * (Kalimpong is in Bengal) and the Dalai Lama at Tabo. Only place NOUNS, and
+ * only far-away ones — Nepal, Bhutan, Sri Lanka, Bangladesh, Pakistan, Tibet
+ * and Myanmar are missing on purpose, because the archive is India *and her
+ * neighbours*. "Turkey" is missing for a different reason: Turkey tail is a
+ * fungus, and it cost three woodland clips before the list was checked against
+ * what it actually excluded. "Sydney" went the same way: Sydney Point is a
+ * viewpoint at Panchgani in Maharashtra, and the gazetteer holds only 186
+ * Indian places, so nothing was left to rescue it.
+ */
+const DISTANT_PLACE =
+  /\b(?:Finland|Helsinki|Netherlands|Keukenhof|Holland|Sweden|Norway|Denmark|Germany|Berlin|France|Italy|Lombardy|Rome|Spain|Portugal|Switzerland|Austria|Salzburg|Vienna|Belgium|Poland|Greece|Istanbul|Ankara|Egypt|Kenya|Maasai\s+Mara|Serengeti|Tanzania|Morocco|Casablanca|Tokyo|Australia|Canada|Mauritius|Hollywood|California|Washington\s+DC|New\s+York|Brazil|Mexico|Russia|Moscow|Ural)\b/i;
+
+/**
+ * A title that also names India keeps the clip, because the footage is here and
+ * the foreign word is the opponent, the visiting troupe or the origin story:
+ * "India v/s Australia at Feroz Shah Kotla", "Otava Yo from Russia performing
+ * at Sufi festival in India", "FIFA World Cup Russia sand art on beach in
+ * India". Matched on word boundaries — substring matching rescued "World
+ * championship of athletics in Spain" off some place name buried inside another
+ * word.
+ */
+const INDIA_SIGNAL =
+  /\b(?:india|indian|indians|india's|indo|indo-\w+|bharat|himalaya|himalayan|himalayas)\b/i;
+
+let indianPlaceWords: RegExp | null = null;
+
+/** True when a clip belongs in an India-facing feed. */
+export function isIndianClip(clip: { placeId: string | null; title: string }): boolean {
+  if (clip.placeId !== null) return isIndian(clip.placeId);
+
+  if (!DISTANT_PLACE.test(clip.title)) return true;
+  if (INDIA_SIGNAL.test(clip.title)) return true;
+
+  // Built once: an Indian place named in the title settles it too, which is how
+  // "View from Sydney Point, Panchgani" stays in.
+  if (!indianPlaceWords) {
+    const names = getPlaces()
+      .filter((p) => p.country === 'India' && p.name.length >= 5)
+      .map((p) => p.name.replace(/[^a-zA-Z\s]/g, '').trim())
+      .filter(Boolean)
+      .sort((a, b) => b.length - a.length);
+    indianPlaceWords = new RegExp(`\\b(?:${names.join('|')})\\b`, 'i');
+  }
+  return indianPlaceWords.test(clip.title);
+}
+
+/**
+ * Stable India-first ordering; relative order within each group is kept.
+ *
+ * Uses `isIndianClip`, not `isIndian`. Judging on the place tag alone treats
+ * every untagged clip as Indian, so the `railway` subject page opened with a
+ * Sahibabad Junction train and then "Winter train journey through Helsinki,
+ * Finland on the HSL Commuter Railway" — second on the page. The feed already
+ * read the title for this; the browse pages were still going by the tag.
+ */
+export function indiaFirst<T extends { placeId: string | null; title: string }>(
+  clips: T[],
+): T[] {
   const home: T[] = [];
   const away: T[] = [];
-  for (const c of clips) (isIndian(c.placeId) ? home : away).push(c);
+  for (const c of clips) (isIndianClip(c) ? home : away).push(c);
   return home.concat(away);
 }

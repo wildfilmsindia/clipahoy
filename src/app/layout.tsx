@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from 'next';
 import { Newsreader, IBM_Plex_Sans } from 'next/font/google';
 import { Suspense } from 'react';
 
-import { getAllClips, getCoveredPlaces } from '@/lib/archive';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Backdrop } from '@/components/Backdrop';
@@ -51,9 +50,6 @@ export const viewport: Viewport = {
 const TASTE_FLAG = `try{var m=document.cookie.match(/clipahoy_taste=([^;]+)/);if(m){var a=JSON.parse(decodeURIComponent(m[1])).a;if(a&&Object.keys(a).some(function(k){return String(a[k]).trim()}))document.documentElement.dataset.taste='1'}}catch(e){}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const clips = getAllClips().length;
-  const places = getCoveredPlaces(20).length;
-
   return (
     <html lang="en" className={`${newsreader.variable} ${plex.variable}`}>
       <head>
@@ -81,7 +77,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <div id="main">{children}</div>
 
-        <Footer clips={clips} places={places} />
+        <Footer />
       </body>
     </html>
   );

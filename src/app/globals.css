@@ -195,6 +195,75 @@
     color: #14100a;
   }
 
+  /* --------------------------------------------------------- form fields */
+
+  /**
+   * The ordinary boxed input, for real forms.
+   *
+   * Distinct from .taste-field, which is a single hero line of display type
+   * and belongs only to onboarding. This is the workaday control: sans face,
+   * a visible box, and the same accent focus treatment the rest of the site
+   * uses so a focused field looks like a focused chip or button.
+   */
+  .field {
+    width: 100%;
+    background: color-mix(in srgb, var(--color-paper) 2%, transparent);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-sm);
+    color: var(--color-paper);
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    /* 0.75rem + 1.5em line-height clears the 44px comfortable tap target. */
+    padding: 0.75rem 0.875rem;
+    transition:
+      border-color 0.18s var(--ease-out-soft),
+      background-color 0.18s var(--ease-out-soft),
+      box-shadow 0.18s var(--ease-out-soft);
+  }
+  .field::placeholder {
+    color: var(--color-faint);
+  }
+  .field:hover:not(:focus) {
+    border-color: color-mix(in srgb, var(--color-line) 60%, var(--color-mute));
+  }
+  .field:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 4%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 16%, transparent);
+  }
+  /* The box-shadow above already reads as a ring; the global outline would
+     draw a second one just outside it. */
+  .field:focus-visible {
+    outline: none;
+  }
+  /* Fields are disabled while a submit is in flight. Without this they looked
+     identical to editable ones and simply refused input. */
+  .field:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  /* Only ever set after a failed submit, so the red is never the resting
+     state of an untouched form. */
+  .field[aria-invalid='true'] {
+    border-color: #e05555;
+  }
+  .field[aria-invalid='true']:focus {
+    box-shadow: 0 0 0 3px color-mix(in srgb, #e05555 20%, transparent);
+  }
+
+  /** Label above a .field. */
+  .field-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.6875rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-mute);
+    font-weight: 500;
+  }
+
   /* -------------------------------------------------- onboarding field */
 
   /**
@@ -247,35 +316,6 @@
     outline: none;
   }
 
-  /**
-   * Example hint under the onboarding field.
-   *
-   * Deliberately quieter than .chip — these are prompts for what you could
-   * type, not answers to pick. Sized for a thumb: plain text hints measured
-   * ~20px tall, under the 24px WCAG 2.5.8 minimum.
-   */
-  .ghost-chip {
-    display: inline-flex;
-    align-items: center;
-    min-height: 32px;
-    border: 1px dashed var(--color-line);
-    border-radius: 99px;
-    background: transparent;
-    color: var(--color-faint);
-    font-size: 0.8125rem;
-    line-height: 1;
-    padding: 0.4375rem 0.8125rem;
-    cursor: pointer;
-    white-space: nowrap;
-    transition:
-      color 0.18s var(--ease-out-soft),
-      border-color 0.18s var(--ease-out-soft);
-  }
-  .ghost-chip:hover {
-    color: var(--color-paper);
-    border-color: var(--color-forest-bright);
-    border-style: solid;
-  }
 
   /**
    * A playlist row: swipeable on a phone, a full row of five on a desktop.
@@ -339,6 +379,15 @@
    * and heading gaps to seven, chosen ad hoc per section, so the vertical
    * rhythm read as noise rather than structure. Two steps is enough: a major
    * break between unrelated blocks, a minor one between related ones.
+   */
+  /**
+   * The one page container.
+   *
+   * Header, footer and the error pages each hard-coded `max-w-[1400px]` while
+   * every content page used this at 1600px. Below 1400px viewports they agree,
+   * which is why it went unnoticed — above it the logo and the footer sat 100px
+   * further in than the page heading they were supposed to align with. Anything
+   * that spans the page uses this class and nothing re-declares the width.
    */
   .shell {
     margin-inline: auto;

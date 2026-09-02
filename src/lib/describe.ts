@@ -105,9 +105,23 @@ function clean(title: string): string {
  * rather than a description.
  */
 function isUsable(t: string): boolean {
-  if (t.length < 20) return false;
+  /*
+   * A real title beats a generated one, however short it is.
+   *
+   * This used to demand 20 characters and four words, which discarded 2,444
+   * real titles — 2.3% of the archive — and replaced them with a subject
+   * template built from the clip's FIRST TAG. The template can therefore be
+   * flatly wrong: "Dubai beach" came back as "Festival in Dubai". "Marine
+   * Drive, Mumbai", "Pied Kingfisher trio!", "Wild strawberries" and "Train to
+   * Kerala" were all thrown away the same way.
+   *
+   * The length floor was aimed at camera-slate labels, but the ALL-CAPS test
+   * below is what actually catches those; length was only ever a poor proxy
+   * for it. Nine titles now fall through to the template, every one a shouted
+   * slate label.
+   */
   const words = t.split(/\s+/).filter((w) => w.length > 1);
-  if (words.length < 4) return false;
+  if (words.length < 1) return false;
 
   /*
    * Script check, deliberately Unicode-aware.
@@ -127,11 +141,25 @@ function isUsable(t: string): boolean {
 function mentionsPlace(text: string, place: Place | undefined): boolean {
   if (!place) return false;
   const hay = text.toLowerCase();
-  return (
-    hay.includes(place.name.toLowerCase()) ||
+  const name = place.name.toLowerCase();
+
+  if (
+    hay.includes(name) ||
     hay.includes(place.state.toLowerCase()) ||
     hay.includes(place.district.toLowerCase())
-  );
+  ) {
+    return true;
+  }
+
+  /*
+   * Titles and the gazetteer do not always agree on a spelling, and an exact
+   * substring test then appends a place the sentence already names: a clip
+   * titled "Ranthambhore" read "Ranthambhore, in Ranthambore". A six-character
+   * prefix is enough to recognise the same word without colliding across
+   * different places — no two gazetteer names share one.
+   */
+  const prefix = name.slice(0, 6);
+  return prefix.length >= 5 && hay.includes(prefix);
 }
 
 function capitalise(s: string): string {

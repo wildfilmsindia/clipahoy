@@ -28,8 +28,15 @@ export default async function PlacePage({ params, searchParams }: Props) {
   const place = getPlace(decodeURIComponent(slug));
   if (!place) notFound();
 
-  const page = Math.max(1, Number((await searchParams).page) || 1);
   const { clips: all, total } = clipsForPlace(place.id, Number.MAX_SAFE_INTEGER);
+
+  /*
+   * Floored and clamped, for the same reason as the subject page: `?page=
+   * 999999` rendered a place page with no hero and no clips at all.
+   */
+  const requestedPage = Math.max(1, Math.floor(Number((await searchParams).page)) || 1);
+  const lastPage = Math.max(1, Math.ceil((total - 1) / PAGE_SIZE));
+  const page = Math.min(requestedPage, lastPage);
 
   const offset = page === 1 ? 0 : 1 + (page - 1) * PAGE_SIZE;
   const slice = all.slice(offset, offset + (page === 1 ? PAGE_SIZE + 1 : PAGE_SIZE));
@@ -37,7 +44,6 @@ export default async function PlacePage({ params, searchParams }: Props) {
 
   const hero = page === 1 ? cards[0] : undefined;
   const rest = page === 1 ? cards.slice(1) : cards;
-  const lastPage = Math.max(1, Math.ceil((total - 1) / PAGE_SIZE));
 
   // What this place is actually known for, from its own clips.
   const tally = new Map<Subject, number>();

@@ -29,10 +29,6 @@ export default function PlacesPage() {
         <h1 className="mt-2 font-display text-[34px] leading-tight font-light sm:text-[46px]">
           Where the cameras went
         </h1>
-        <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-mute">
-          {covered.length} towns and cities with at least 20 well-described clips. The archive names
-          more places than these — these are the ones deep enough to browse.
-        </p>
       </header>
 
       <ul className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">

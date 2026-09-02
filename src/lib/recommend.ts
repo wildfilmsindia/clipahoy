@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { getAllClips, getClipsForPlace, getPlace, isIndian } from './archive';
+import { getAllClips, getClipsForPlace, getPlace, isIndianClip } from './archive';
 import { correctSpelling, search, termRarity } from './search';
 import { interpret, isEmpty, type Signals } from './interpret';
 import { QUESTIONS, type Answers, type TasteQuestion } from './taste';
@@ -235,6 +235,34 @@ function meaningfulWords(text: string): string[] {
 }
 
 /**
+ * Rewrite an answer into the words this archive actually uses.
+ *
+ * Word-by-word so "early fall" becomes "early autumn" rather than needing an
+ * entry of its own, and case-preserving punctuation is irrelevant because
+ * everything downstream lower-cases anyway. Returns the input untouched when
+ * the question declares no aliases, which is all but one of them.
+ */
+function applyAliases(answer: string, question?: TasteQuestion): string {
+  const aliases = question?.aliases;
+  if (!aliases) return answer;
+  return answer.replace(/[a-z]+/gi, (word) => aliases[word.toLowerCase()] ?? word);
+}
+
+/**
+ * The words a title must contain for the answer to count as written evidence.
+ *
+ * Spelling-corrected, because search corrects too: "keralla" retrieves real
+ * Kerala footage, so checking the titles for "keralla" would reject every clip
+ * search just found. Both the candidate filter and the match-reason label go
+ * through here — they disagreed before, and the reason label was the one that
+ * was wrong, so typo'd answers were badged "from the description" on clips
+ * whose titles plainly carried the word.
+ */
+function evidenceNeedles(answer: string): string[] {
+  return meaningfulWords(answer).map((w) => correctSpelling(w) ?? w);
+}
+
+/**
  * Every answer is ranked by BM25 over title and prose, including place answers.
  *
  * Place answers used to bypass search and sort the place's tagged clips by a
@@ -263,20 +291,93 @@ function meaningfulWords(text: string): string[] {
  * untagged, words alone miss a clip that never repeats the category noun; both
  * together are enough to tell a Hornbill Festival from a hornbill.
  */
+/**
+ * Word-start match against a title. Plain `includes` matched "eat" inside
+ * "heat", "great" and "create", so a bee hive "in summer heat" passed the
+ * food context and a Honey Buzzard passed via "create". On the notWords
+ * side, "port" matched "transport", "export" and "airport", wrongly
+ * excluding real wildlife clips whose descriptions mentioned travel.
+ *
+ * Start-of-word only (`\bword`), not full `\bword\b`, because inflections
+ * must still match: "vendor" should find "vendors", "eat" should find
+ * "eating", "serve" should find "serving". The start boundary is what
+ * prevents "eat" inside "heat" (h is a word character, so no `\b` before
+ * the e) while `\beat` still matches "eating" (space or start-of-string
+ * before the e IS a boundary).
+ */
+const wordBoundaryCache = new Map<string, RegExp>();
+
+function titleHasWord(title: string, word: string): boolean {
+  let re = wordBoundaryCache.get(word);
+  if (!re) {
+    re = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i');
+    wordBoundaryCache.set(word, re);
+  }
+  return re.test(title);
+}
+
 function inContext(clip: Clip, context: TasteQuestion['context']): boolean {
   if (!context) return true;
 
   const title = clip.title.toLowerCase();
-  // A named wrong sense wins over any positive evidence, because the positive
-  // evidence can be a bad tag.
-  if (context.notWords?.some((w) => title.includes(w))) return false;
+  if (context.notWords?.some((w) => titleHasWord(title, w))) return false;
 
   if (context.subjects?.some((s) => clip.subjects.includes(s))) return true;
   if (!context.words?.length) return false;
 
-  // Title only. Matching the description let a passing mention qualify — the
-  // same failure the answer-evidence rule exists to prevent.
-  return context.words.some((w) => title.includes(w));
+  return context.words.some((w) => titleHasWord(title, w));
+}
+
+/**
+ * Is this clip on topic because of its TAGS, rather than because a category
+ * word happens to appear in its title?
+ *
+ * Both count as on topic, but they are not equally good evidence, and the
+ * difference is the whole answer to a family of wrong-sense matches. A species
+ * name is often a modifier inside a different species' name: "Rose-ringed
+ * Parakeet" under *favourite flower*, "Orange Minivet" under *favourite food*,
+ * "Formosan Swift butterflies" under *favourite bird*. Every one of those is
+ * tagged for what it actually is — `birds`, not `flowers` — so the tag already
+ * knows the answer where the title text does not.
+ *
+ * Used to order the on-topic set rather than to filter it: a correct clip is
+ * not always tagged, so demoting the untagged is right where dropping them
+ * would lose real footage.
+ */
+function taggedOnTopic(clip: Clip, context: TasteQuestion['context']): boolean {
+  return !!context?.subjects?.some((s) => clip.subjects.includes(s));
+}
+
+/**
+ * Order tag-derived candidates by how much of the answer their titles carry.
+ *
+ * The structural fallbacks below select on a tag — state, subject, region —
+ * which says nothing about which of several thousand tagged clips is the best
+ * answer to what was typed. Without this they came back in archive order.
+ *
+ * Deliberately cheap and title-only: this runs over a tag's whole population,
+ * and the point is to break an arbitrary tie, not to re-implement BM25. Rarer
+ * answer words count for more, so "sea" outranks "small" in "a small village
+ * near the sea", and ties fall back to the shorter title — which in this
+ * archive is the more specific one.
+ */
+function rankByAnswer(clips: Clip[], answer: string): Clip[] {
+  const needles = evidenceNeedles(answer);
+  if (needles.length === 0) return clips;
+
+  const weights = needles.map((w) => termRarity(w));
+
+  return clips
+    .map((clip) => {
+      const title = clip.title.toLowerCase();
+      let score = 0;
+      needles.forEach((w, i) => {
+        if (title.includes(w)) score += weights[i];
+      });
+      return { clip, score };
+    })
+    .sort((a, b) => b.score - a.score || a.clip.title.length - b.clip.title.length)
+    .map((s) => s.clip);
 }
 
 function sourceClipsFor(sig: Signals, answer: string, context?: TasteQuestion['context']): Clip[] {
@@ -286,17 +387,9 @@ function sourceClipsFor(sig: Signals, answer: string, context?: TasteQuestion['c
 
   const ranked = search(query, 80)
     .map((h) => h.clip)
-    .filter((c) => isIndian(c.placeId));
+    .filter((c) => isIndianClip(c));
 
-  /*
-   * Evidence is checked against the CORRECTED spelling.
-   *
-   * Search repairs "keralla" to "kerala" and returns real Kerala footage, but
-   * the title check was still looking for the misspelling, so every clip was
-   * rejected and a typo'd answer produced an empty row — the search fix
-   * undone one layer up.
-   */
-  const needles = meaningfulWords(answer).map((w) => correctSpelling(w) ?? w);
+  const needles = evidenceNeedles(answer);
   const inTitle = (c: Clip) => {
     const title = c.title.toLowerCase();
     return needles.length > 0 && needles.every((w) => title.includes(w));
@@ -319,10 +412,64 @@ function sourceClipsFor(sig: Signals, answer: string, context?: TasteQuestion['c
      * If ANY clip is on topic, show only those — even if that means a row of
      * two. Padding out to five with off-topic footage is what put construction
      * cranes at Paradeep Port under "favourite bird" and paddy cultivation
-     * under "favourite food". Fewer right answers beat five with wrong ones in
-     * them. The fallback below only runs when nothing at all is on topic.
+     * under "favourite food". Fewer right answers beat five with wrong ones.
      */
-    if (onTopic.length) return onTopic;
+    if (onTopic.length) {
+      /*
+       * Clips the tags agree with lead. Order is stable within each half, so
+       * BM25's ranking still decides the running order among equals — this
+       * only sinks the clips whose only claim to the topic is a category word
+       * sitting in the title of something else.
+       */
+      if (context.subjects?.length) {
+        const tagged = onTopic.filter((c) => taggedOnTopic(c, context));
+        if (tagged.length) {
+          return [...tagged, ...onTopic.filter((c) => !taggedOnTopic(c, context))];
+        }
+      }
+      return onTopic;
+    }
+
+    /*
+     * Nothing on topic at all: the word exists in the archive but never in the
+     * sense the question asked about. Answering "jaguar" under *favourite
+     * animal* used to return Indian Air Force Jaguar fighter jets and a
+     * Connaught Place car showroom — four clips, no cat.
+     *
+     * But a MULTI-WORD answer whose every word is in the title is evidence in
+     * its own right, and stopping here punished it. "Butter chicken" found
+     * "Chicken butter masala - made in Bangalore" — the dish, plainly — and
+     * threw it away, because that clip carries no subject tags and its title
+     * uses no food-category word. The context vocabulary cannot list every
+     * dish, bird and bloom in India, so it must not be the only way to qualify.
+     *
+     * One ambiguous noun is not the same evidence as two words landing
+     * together, which is why the relaxation is limited to the latter.
+     */
+    const named = evidenceNeedles(answer).length >= 2;
+    if (named) {
+      /*
+       * `notWords` still applies. This escape hatch exists because the context
+       * VOCABULARY is necessarily incomplete — it cannot list every dish — but
+       * a named wrong sense is a deliberate exclusion, not an omission.
+       * "Shimla mirch" was returning "Capsicum Shimla mirch farming in
+       * Nainbagh" alongside the capsicum itself, and growing an ingredient is
+       * exactly what the food question already says it does not mean.
+       */
+      const titled = strong
+        .filter(inTitle)
+        .filter((c) => !context.notWords?.some((w) => c.title.toLowerCase().includes(w)));
+      if (titled.length) return titled;
+    }
+
+    /*
+     * A single word, in the wrong sense, with nothing to redeem it. This is the
+     * judgement the Nowruz rule already makes for the archive as a whole: an
+     * empty row is honest where five confidently wrong clips are not. Only
+     * questions carrying a context stop here — place and region answers have no
+     * wrong sense to fall into and keep the fallbacks below.
+     */
+    return [];
   }
 
   if (strong.length >= PER_ANSWER) return strong;
@@ -332,8 +479,8 @@ function sourceClipsFor(sig: Signals, answer: string, context?: TasteQuestion['c
   if (sig.places.size) {
     const tagged = [...sig.places]
       .flatMap((id) => getClipsForPlace(id))
-      .filter((c) => isIndian(c.placeId) && !strong.some((o) => o.id === c.id));
-    if (strong.length + tagged.length > 0) return [...strong, ...tagged];
+      .filter((c) => isIndianClip(c) && !strong.some((o) => o.id === c.id));
+    if (strong.length + tagged.length > 0) return [...strong, ...rankByAnswer(tagged, answer)];
   }
 
   if (strong.length) return strong;
@@ -342,17 +489,34 @@ function sourceClipsFor(sig: Signals, answer: string, context?: TasteQuestion['c
    * No title or place evidence at all. Structural tags are still trustworthy —
    * they were assigned by the extractor, not inferred from one word in a
    * paragraph — so a state, subject or region answer can still fill a row.
+   *
+   * Ranked, not filtered. These used to return `getAllClips().filter(...)`,
+   * which is ARCHIVE ORDER — whatever happened to carry the tag, with no
+   * regard for what was typed. "A small village near the sea" led with Shabana
+   * Azmi discussing a 2004 film and a Vistara flight to Bagdogra, both merely
+   * tagged `village`. Sorting the same candidates by how much of the answer
+   * their titles carry costs one pass and puts the villages and the coast on
+   * top, which is what the sentence actually asked for.
    */
   if (sig.states.size) {
-    return getAllClips().filter((c) => c.placeId && sig.states.has(getPlace(c.placeId)?.state ?? ''));
+    return rankByAnswer(
+      getAllClips().filter((c) => c.placeId && sig.states.has(getPlace(c.placeId)?.state ?? '')),
+      answer,
+    );
   }
   if (sig.subjects.size) {
-    return getAllClips().filter(
-      (c) => isIndian(c.placeId) && c.subjects.some((s) => sig.subjects.has(s)),
+    return rankByAnswer(
+      getAllClips().filter(
+        (c) => isIndianClip(c) && c.subjects.some((s) => sig.subjects.has(s)),
+      ),
+      answer,
     );
   }
   if (sig.regions.size) {
-    return getAllClips().filter((c) => c.placeId && sig.regions.has(getPlace(c.placeId)?.region as never));
+    return rankByAnswer(
+      getAllClips().filter((c) => c.placeId && sig.regions.has(getPlace(c.placeId)?.region as never)),
+      answer,
+    );
   }
 
   // The archive mentions the word but has no footage of it. Say nothing.
@@ -508,16 +672,23 @@ function answerGroups(answers: Answers): AnswerGroup[] {
     const answer = answers[q.id]?.trim();
     if (!answer) continue;
 
-    const pool = sourceClips(interpret({ [q.id]: answer }), answer, q.id, q.context);
+    /*
+     * Everything downstream — interpretation, retrieval, evidence and
+     * diversity — runs on the aliased form; only `answer` is displayed, so the
+     * heading still reads back exactly what was typed.
+     */
+    const query = applyAliases(answer, q);
+
+    const pool = sourceClips(interpret({ [q.id]: query }), query, q.id, q.context);
     if (pool.length === 0) continue;
 
     // `used` spans every row, so a clip shown under one answer never reappears
     // under another — the page never repeats itself.
-    const clips = diverseTake(pool, PER_ANSWER, used, answer);
+    const clips = diverseTake(pool, PER_ANSWER, used, query);
     for (const c of clips) used.add(c.id);
 
-    const sig = interpret({ [q.id]: answer });
-    const needles = meaningfulWords(answer);
+    const sig = interpret({ [q.id]: query });
+    const needles = evidenceNeedles(query);
     const reasons = clips.map((c): MatchReason => {
       const title = c.title.toLowerCase();
       if (needles.length && needles.every((w) => title.includes(w))) return 'title';
@@ -565,7 +736,7 @@ export function recommend(answers: Answers): Recommendation {
    * and subject tallies over everything the answers touch. Cheap: no term
    * searches, one walk of the clip array.
    */
-  const scored = scoreAll(signals, false).filter((s) => isIndian(s.clip.placeId));
+  const scored = scoreAll(signals, false).filter((s) => isIndianClip(s.clip));
 
   const placeTally = new Map<string, number>();
   const subjectTally = new Map<Subject, number>();

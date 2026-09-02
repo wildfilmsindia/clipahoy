@@ -247,8 +247,14 @@ export function Onboarding({
             {question.prompt}
           </h1>
 
-          <p id={hintId} className="mt-4 max-w-md text-[15px] leading-relaxed text-mute">
-            {question.support}
+          {/*
+            Names the shapes of answer that work, in place of the four example
+            chips this used to carry. Visible rather than a placeholder: these
+            run to eighty-odd characters and would be clipped inside a single
+            line of 2rem display type.
+          */}
+          <p id={hintId} className="mt-4 max-w-lg text-[15px] leading-relaxed text-mute">
+            {question.hint}
           </p>
 
           <form
@@ -275,7 +281,9 @@ export function Onboarding({
                   setValue('');
                 }
               }}
-              placeholder={question.placeholder}
+              /* The hint above says what kind of answer works; the field only
+                 needs to look enterable. */
+              placeholder="Type your answer…"
               aria-describedby={hintId}
               autoComplete="off"
               autoCorrect="off"
@@ -299,28 +307,12 @@ export function Onboarding({
             )}
 
             {/*
-              Ghost chips rather than a dot-separated line. Wrapping the list
-              put a leading separator at the start of the second row, which
-              read as a stray bullet, and plain text gave a ~20px tap target.
+              No example chips under an empty field. Four named answers sitting
+              below every question read as the permitted set rather than as
+              hints, which is the opposite of what these questions want — any
+              place, dish or bird should feel typeable. Suggestions still appear
+              above, but only once someone has started typing.
             */}
-            {suggestions.length === 0 && question.examples.length > 0 && (
-              <ul className="mt-4 flex flex-wrap gap-2">
-                {question.examples.map((ex) => (
-                  <li key={ex}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setValue(ex);
-                        inputRef.current?.focus();
-                      }}
-                      className="ghost-chip"
-                    >
-                      {ex}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
 
             <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
               <button type="submit" className="btn btn-primary">
@@ -439,7 +431,7 @@ function Reveal({ personal }: { personal: boolean }) {
           {personal ? 'We\u2019ve got a sense of your India.' : 'No questions, then.'}
         </p>
         <p className="reveal-b mt-5 font-display text-[30px] leading-tight font-light sm:text-[44px]">
-          {personal ? 'Your archive is ready.' : 'Here is the whole archive.'}
+          {personal ? 'Your India is ready.' : 'Here is the whole archive.'}
         </p>
       </div>
     </div>

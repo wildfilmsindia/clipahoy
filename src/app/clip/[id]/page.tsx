@@ -14,7 +14,6 @@ import { Player } from '@/components/Player';
 import { recommend } from '@/lib/recommend';
 import { TASTE_COOKIE, decodeTaste } from '@/lib/taste';
 
-const LICENSE_URL = 'https://www.wildfilmsindia.com/contact';
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -138,14 +137,17 @@ export default async function ClipPage({ params }: Props) {
                 Broadcast-quality masters are available from Wilderness Films India.
               </p>
             </div>
-            <a
-              href={LICENSE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+            {/*
+              Carries the clip through to the form. Enquiring used to open the
+              parent company's site in a new tab with a blank subject, leaving
+              the person to describe which of 108,000 clips they meant.
+            */}
+            <Link
+              href={`/contact?subject=${encodeURIComponent(`Licensing enquiry — ${clip.title}`)}`}
               className="btn btn-primary shrink-0"
             >
               Enquire
-            </a>
+            </Link>
           </div>
         </div>
 
