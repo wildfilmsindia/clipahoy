@@ -1,0 +1,49 @@
+name: Sync archive
+
+on:
+  schedule:
+    # Every Sunday at 04:00 UTC (09:30 IST)
+    - cron: '0 4 * * 0'
+  workflow_dispatch:
+    # Manual trigger from the Actions tab
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Push back to the same branch
+          ref: archive-discovery
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Incremental ingest
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          YOUTUBE_CHANNEL_ID: ${{ secrets.YOUTUBE_CHANNEL_ID }}
+        run: npm run ingest -- --since
+
+      - name: Compress archive
+        run: npm run pack-archive
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/index.json.gz
+          if git diff --cached --quiet; then
+            echo "No new videos — nothing to commit."
+          else
+            COUNT=$(git diff --cached --stat | grep -oP '\d+ insertion' | grep -oP '\d+' || echo "some")
+            git commit -m "Sync archive: new uploads as of $(date -u +%Y-%m-%d)"
+            git push
+            echo "Pushed updated archive."
+          fi
