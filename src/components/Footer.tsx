@@ -7,10 +7,12 @@ export function Footer() {
       <div className="shell py-14">
         <div className="flex flex-col gap-10 sm:flex-row sm:justify-between">
           <div className="max-w-sm">
-            <p className="font-display text-[19px] text-paper">
-              Clip<span className="text-accent">ahoy</span>
-              <span className="ml-1.5 text-[13px] font-sans font-normal text-mute">by WildFilmsIndia</span>
-            </p>
+            <div>
+              <p className="font-display text-[19px] text-paper">
+                Clip<span className="text-accent">ahoy</span>
+              </p>
+              <p className="mt-1 text-[13px] text-mute">by WildFilmsIndia</p>
+            </div>
             <p className="mt-3 text-[14px] leading-relaxed text-mute">
               A searchable front door to South Asia&rsquo;s largest factual visual archive —
               decades of content filmed across India and her neighbours.
@@ -57,8 +59,8 @@ export function Footer() {
               <ul className="mt-4 space-y-2.5">
                 {[
                   { href: 'https://www.wildfilmsindia.com/about', label: 'About us' },
-                  { href: 'https://www.wildfilmsindia.com/contact', label: 'Contact' },
-                  { href: 'https://www.wildfilmsindia.com/contact', label: 'License footage' },
+                  { href: 'https://www.wildfilmsindia.com/#contact', label: 'Contact' },
+                  { href: 'https://www.wildfilmsindia.com/#contact', label: 'License footage' },
                   { href: 'https://www.wildfilmsindia.com', label: 'Wilderness Films' },
                 ].map((l) => (
                   <li key={l.label}>
