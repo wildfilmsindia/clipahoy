@@ -18,7 +18,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Push back to the same branch
           ref: archive-discovery
 
       - uses: actions/setup-node@v4
@@ -27,6 +26,25 @@ jobs:
           cache: npm
 
       - run: npm ci
+
+      # The --since flag reads .ingest-cache.jsonl to know which videos are
+      # already indexed. That file is ~400 MB and can't live in the repo. Without
+      # it, --since treats ALL videos as new and re-fetches 20,000 of them,
+      # replacing the full 108K archive. This step builds a minimal stub cache
+      # from the existing archive — just enough for knownVideoIds() to skip them.
+      - name: Seed cache from existing archive
+        run: |
+          node -e "
+            const { gunzipSync } = require('zlib');
+            const { readFileSync, writeFileSync } = require('fs');
+            const gz = readFileSync('data/index.json.gz');
+            const archive = JSON.parse(gunzipSync(gz).toString());
+            const lines = archive.clips.map(c =>
+              JSON.stringify({ snippet: { resourceId: { videoId: c.id } } })
+            );
+            writeFileSync('data/.ingest-cache.jsonl', lines.join('\n') + '\n');
+            console.log(archive.clips.length + ' known IDs written to stub cache.');
+          "
 
       - name: Incremental ingest
         env:
@@ -45,7 +63,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No new videos — nothing to commit."
           else
-            COUNT=$(git diff --cached --stat | grep -oP '\d+ insertion' | grep -oP '\d+' || echo "some")
             git commit -m "Sync archive: new uploads as of $(date -u +%Y-%m-%d)"
             git push
             echo "Pushed updated archive."
