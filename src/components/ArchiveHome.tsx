@@ -94,7 +94,7 @@ export function ArchiveHome({ thinPersonalisation = false }: { thinPersonalisati
           </div>
 
           <Link href="/start" className="btn btn-primary shrink-0">
-            Make my archive
+            Create my India
             <span aria-hidden="true">→</span>
           </Link>
         </div>

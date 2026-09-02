@@ -91,7 +91,7 @@ export function Header() {
             data-taste-off
             className="relative rounded-xs px-3 py-2 text-[14px] text-accent transition-colors hover:text-accent-soft"
           >
-            Make my archive
+            Create my India
           </Link>
 
           {NAV.map((item) => {
@@ -148,7 +148,7 @@ export function Header() {
           data-taste-off
           className="shrink-0 rounded-xs px-3 py-1.5 text-[13px] whitespace-nowrap text-accent transition-colors"
         >
-          Make my archive
+          Create my India
         </Link>
 
         {NAV.map((item) => {
