@@ -62,9 +62,12 @@ export function Header() {
         */}
         <Link
           href="/explore"
-          className="group shrink-0 font-display text-[20px] leading-none tracking-tight text-paper transition-colors hover:text-accent"
+          className="group shrink-0 transition-colors hover:text-accent"
         >
-          Clip<span className="text-accent transition-colors group-hover:text-paper">ahoy</span>
+          <span className="font-display text-[20px] leading-none tracking-tight text-paper transition-colors group-hover:text-accent">
+            Clip<span className="text-accent transition-colors group-hover:text-paper">ahoy</span>
+          </span>
+          <span className="block text-[10px] leading-tight text-mute">by WildFilmsIndia</span>
         </Link>
 
         <nav aria-label="Primary" className="hidden items-center gap-1 sm:flex">
