@@ -55,6 +55,16 @@ jobs:
       - name: Compress archive
         run: npm run pack-archive
 
+      - name: Guard against archive shrinkage
+        run: |
+          OLD=$(git show HEAD:data/index.json.gz | wc -c | tr -d ' ')
+          NEW=$(wc -c < data/index.json.gz | tr -d ' ')
+          echo "Old: ${OLD} bytes → New: ${NEW} bytes"
+          if [ "$NEW" -lt "$OLD" ]; then
+            echo "::error::New archive ($NEW bytes) is smaller than current ($OLD bytes). Aborting to prevent data loss."
+            exit 1
+          fi
+
       - name: Commit and push if changed
         run: |
           git config user.name "github-actions[bot]"
