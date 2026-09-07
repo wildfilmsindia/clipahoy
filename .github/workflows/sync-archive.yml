@@ -52,19 +52,6 @@ jobs:
           YOUTUBE_CHANNEL_ID: ${{ secrets.YOUTUBE_CHANNEL_ID }}
         run: npx tsx scripts/ingest.ts --since
 
-      # The ingest rebuilds data/index.json from the crawl cache, which here is
-      # a stub with no titles — so it emits ONLY the new videos. Merge them back
-      # onto the committed archive or the next step would pack a few dozen rows
-      # over 108k. Skipped when the ingest found nothing and wrote no delta.
-      - name: Merge delta into existing archive
-        run: |
-          if [ ! -f data/index.json ]; then
-            echo "No delta written — nothing new to merge."
-            exit 0
-          fi
-          git show HEAD:data/index.json.gz > /tmp/baseline.json.gz
-          node scripts/merge-archive.mjs /tmp/baseline.json.gz
-
       - name: Compress archive
         run: npm run pack-archive
 

@@ -33,6 +33,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, appendFileSync } from 'node:fs';
 import readline from 'node:readline';
 import { createReadStream } from 'node:fs';
+import { gunzipSync } from 'node:zlib';
 import path from 'node:path';
 
 import type { Clip, RawPlace, Region, Subject, Terrain } from '../src/lib/types';
@@ -478,6 +479,33 @@ function loadTombstones(): Set<string> {
   } catch {
     return new Set();
   }
+}
+
+/* ---------------------------- append-only merge --------------------------- */
+
+const ARCHIVE_GZ = path.join(DATA_DIR, 'index.json.gz');
+
+/**
+ * The archive as it currently stands, or null before there is one.
+ *
+ * Plain file first, then the shipped .gz — the same order src/lib/archive.ts
+ * uses, so this reads whatever the site would read. A missing or unreadable
+ * archive is "no baseline" rather than an error: a first ingest has none, and
+ * refusing to run would be worse than starting fresh.
+ */
+function loadExistingArchive(): { places: RawPlace[]; clips: Clip[] } | null {
+  try {
+    if (existsSync(OUT_FILE)) {
+      return JSON.parse(readFileSync(OUT_FILE, 'utf8')) as { places: RawPlace[]; clips: Clip[] };
+    }
+    if (existsSync(ARCHIVE_GZ)) {
+      const raw = gunzipSync(readFileSync(ARCHIVE_GZ)).toString('utf8');
+      return JSON.parse(raw) as { places: RawPlace[]; clips: Clip[] };
+    }
+  } catch (err) {
+    console.warn(`  ! existing archive unreadable (${(err as Error).message}); treating as empty.`);
+  }
+  return null;
 }
 
 /* -------------------------------- --reconcile ----------------------------- */
@@ -948,9 +976,76 @@ async function main() {
     };
   });
 
+  /*
+   * --since and --backfill are append-only, so what they write has to be the
+   * archive PLUS what this run found — never only what this run found.
+   *
+   * Extraction rebuilds from the crawl cache, and that cache is not always
+   * complete. CI seeds a stub holding video ids and nothing else, because the
+   * real one is ~480 MB and cannot live in the repo; with no title on those
+   * rows the extractor skips every existing clip, and the run emits just the
+   * handful of new videos. Writing that replaced a 108k-clip archive with a few
+   * dozen rows, three times, before a size guard caught it.
+   *
+   * Merging here rather than in the sync workflow keeps a local `--since` and a
+   * CI `--since` producing the same file. Tombstoned ids are dropped from the
+   * baseline as well as skipped during extraction, so --reconcile still removes
+   * departed videos rather than having them carried forward for ever.
+   */
+  let outClips = clips;
+  let outPlaces = places;
+
+  if (sinceMode || backfillMode) {
+    const existing = loadExistingArchive();
+    if (existing) {
+      const clipById = new Map<string, Clip>();
+      let carried = 0;
+      let evicted = 0;
+      for (const clip of existing.clips) {
+        if (tombstones.has(clip.id)) {
+          evicted++;
+          continue;
+        }
+        clipById.set(clip.id, clip);
+        carried++;
+      }
+
+      let fresh = 0;
+      let refreshed = 0;
+      for (const clip of clips) {
+        if (clipById.has(clip.id)) refreshed++;
+        else fresh++;
+        // This run wins: a re-extracted video should pick up its corrected
+        // title, place or tags rather than keep the older reading.
+        clipById.set(clip.id, clip);
+      }
+
+      const placeById = new Map(existing.places.map((p) => [p.id, p]));
+      for (const place of places) placeById.set(place.id, place);
+
+      outClips = [...clipById.values()];
+      outPlaces = [...placeById.values()];
+
+      console.log(
+        `\n  merged with existing archive: ${carried.toLocaleString()} carried` +
+          `${evicted ? ` · ${evicted.toLocaleString()} tombstoned dropped` : ''} · ` +
+          `${fresh.toLocaleString()} new · ${refreshed.toLocaleString()} refreshed`,
+      );
+
+      if (outClips.length < carried) {
+        console.error('Merge lost clips; refusing to write.');
+        process.exit(1);
+      }
+    }
+  }
+
   writeFileSync(
     OUT_FILE,
-    JSON.stringify({ source: new Date().toISOString(), places, clips }, null, 2),
+    JSON.stringify(
+      { source: new Date().toISOString(), places: outPlaces, clips: outClips },
+      null,
+      2,
+    ),
     'utf8',
   );
   writeFileSync(
@@ -979,7 +1074,10 @@ async function main() {
     `  place from:   ${bySource.playlist} playlist · ${bySource.hashtag} hashtag · ` +
       `${bySource.title} title · ${bySource.prose} prose`,
   );
-  console.log(`\nWrote data/index.json and data/unmatched.json`);
+  console.log(
+    `\nWrote data/index.json (${outClips.length.toLocaleString()} clips · ` +
+      `${outPlaces.length.toLocaleString()} places) and data/unmatched.json`,
+  );
 }
 
 main().catch((err) => {
