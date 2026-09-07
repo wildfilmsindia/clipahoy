@@ -45,7 +45,9 @@ const merged = {
   clips: [...clips.values()],
 };
 
-writeFileSync('data/index.json', JSON.stringify(merged));
+// Same shape ingest.ts writes, so a CI-merged archive and a locally ingested
+// one are byte-comparable rather than differing only in whitespace.
+writeFileSync('data/index.json', JSON.stringify(merged, null, 2));
 
 console.log(
   `merged: ${baseline.clips.length.toLocaleString()} baseline ` +

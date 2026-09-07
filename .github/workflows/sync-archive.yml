@@ -68,15 +68,25 @@ jobs:
       - name: Compress archive
         run: npm run pack-archive
 
+      # Guards on CLIP COUNT, not byte size. Compressed size moves with JSON
+      # formatting and gzip settings — a compactly serialised archive gzips
+      # smaller while holding MORE clips — so bytes flag false losses. The count
+      # is the invariant that actually matters.
       - name: Guard against archive shrinkage
         run: |
-          OLD=$(git show HEAD:data/index.json.gz | wc -c | tr -d ' ')
-          NEW=$(wc -c < data/index.json.gz | tr -d ' ')
-          echo "Old: ${OLD} bytes → New: ${NEW} bytes"
-          if [ "$NEW" -lt "$OLD" ]; then
-            echo "::error::New archive ($NEW bytes) is smaller than current ($OLD bytes). Aborting to prevent data loss."
-            exit 1
-          fi
+          git show HEAD:data/index.json.gz > /tmp/head.json.gz
+          node -e "
+            const { gunzipSync } = require('zlib');
+            const { readFileSync } = require('fs');
+            const count = (f) => JSON.parse(gunzipSync(readFileSync(f)).toString()).clips.length;
+            const oldN = count('/tmp/head.json.gz');
+            const newN = count('data/index.json.gz');
+            console.log(\`Old: \${oldN.toLocaleString()} clips → New: \${newN.toLocaleString()} clips\`);
+            if (newN < oldN) {
+              console.log(\`::error::New archive (\${newN} clips) has fewer clips than current (\${oldN}). Aborting to prevent data loss.\`);
+              process.exit(1);
+            }
+          "
 
       - name: Commit and push if changed
         run: |
