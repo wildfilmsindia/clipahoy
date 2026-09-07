@@ -4,9 +4,10 @@ on:
   schedule:
     # Every Sunday at 04:00 UTC (09:30 IST)
     - cron: '0 4 * * 0'
-    # ONE-OFF: 7 September, 09:30 UTC (15:00 IST) — an unattended run to watch.
-    # Remove after it fires; left in place it repeats every 7 September.
-    - cron: '30 9 7 9 *'
+    # ONE-OFF: 7 September, 11:37 UTC (17:07 IST) — an unattended run to watch.
+    # Odd minute on purpose: GitHub's scheduler is best-effort and contends
+    # hardest on the hour and half-hour. Remove once it has fired.
+    - cron: '37 11 7 9 *'
   workflow_dispatch:
     # Manual trigger from the Actions tab
 
